@@ -78,7 +78,7 @@ h1, h2, h3 { line-height: 1.25; }
 /* Название — одной строкой, одним шрифтом (на узком экране переносится) */
 .brand-text {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.2;
 }
 
