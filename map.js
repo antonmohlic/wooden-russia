@@ -12,8 +12,35 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 }).addTo(map);
 
-// Слой, в котором лежат видимые сейчас метки
-const markersLayer = L.layerGroup().addTo(map);
+// Слой с видимыми метками. Близкие метки объединяются в кружок с числом (Leaflet.markercluster),
+// с 12-го приближения все метки показываются по отдельности.
+const markersLayer = L.markerClusterGroup({
+  maxClusterRadius: 45,
+  disableClusteringAtZoom: 12,
+  showCoverageOnHover: false,
+  spiderfyOnMaxZoom: true,
+  iconCreateFunction: (cluster) => {
+    const count = cluster.getChildCount();
+    const size = count < 10 ? 34 : count < 100 ? 40 : 46;
+    return L.divIcon({
+      className: "",
+      html: `<div class="cluster-marker" style="width:${size}px;height:${size}px">${count}</div>`,
+      iconSize: [size, size],
+    });
+  },
+}).addTo(map);
+
+// Метка памятника: кружок цвета статуса
+function objectIcon(obj) {
+  const color = STATUS_COLORS[obj.status] || "#555";
+  return L.divIcon({
+    className: "",
+    html: `<div class="object-marker" style="background:${color}"></div>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    popupAnchor: [0, -10],
+  });
+}
 
 function photoHtml(obj) {
   return obj.photo ? `<img src="${escapeHtml(photoSrc(obj, 500))}" alt="${escapeHtml(obj.name)}" loading="lazy">` : "";
@@ -116,13 +143,8 @@ loadObjects()
         const marker = isMuseum(obj)
           ? L.marker([obj.lat, obj.lon], { icon: museumIcon(itemsOf(obj.id).length), zIndexOffset: -100 })
               .bindPopup(museumPopupHtml(obj, itemsOf(obj.id)), { maxWidth: 280 })
-          : L.circleMarker([obj.lat, obj.lon], {
-              radius: 9,
-              color: "#fff",
-              weight: 2,
-              fillColor: STATUS_COLORS[obj.status] || "#555",
-              fillOpacity: 1,
-            }).bindPopup(popupHtml(obj, byId.get(obj.museum)), { maxWidth: 280 });
+          : L.marker([obj.lat, obj.lon], { icon: objectIcon(obj) })
+              .bindPopup(popupHtml(obj, byId.get(obj.museum)), { maxWidth: 280 });
         return [obj.id, marker.bindTooltip(obj.name)];
       })
     );
@@ -145,12 +167,13 @@ loadObjects()
     const drawMarkers = () => {
       const expanded = map.getZoom() >= MUSEUM_EXPAND_ZOOM;
       const shownMuseums = new Set(visible.filter(isMuseum).map((m) => m.id));
-      markersLayer.clearLayers();
-      visible.forEach((obj) => {
-        if (isMuseum(obj) && expanded && itemsOf(obj.id).length) return;
-        if (obj.museum && shownMuseums.has(obj.museum) && !expanded) return;
-        markersLayer.addLayer(markers.get(obj.id));
+      const shown = visible.filter((obj) => {
+        if (isMuseum(obj) && expanded && itemsOf(obj.id).length) return false;
+        if (obj.museum && shownMuseums.has(obj.museum) && !expanded) return false;
+        return true;
       });
+      markersLayer.clearLayers();
+      markersLayer.addLayers(shown.map((obj) => markers.get(obj.id)));
     };
 
     map.on("zoomend", drawMarkers);
@@ -175,7 +198,9 @@ loadObjects()
         // Без анимации, чтобы карточка открылась уже на приближенной карте и поместилась целиком
         map.setView([focusObj.lat, focusObj.lon], zoom, { animate: false });
         drawMarkers();
-        markers.get(focusObj.id).openPopup();
+        // Если метка внутри группы — приближаем, пока она не станет видна, и открываем карточку
+        const focusMarker = markers.get(focusObj.id);
+        markersLayer.zoomToShowLayer(focusMarker, () => focusMarker.openPopup());
       } else {
         drawMarkers();
         fitTo(visible);

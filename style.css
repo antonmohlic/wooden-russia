@@ -785,6 +785,29 @@ a.credit:hover { text-decoration: underline; }
   border-radius: 3px;
 }
 
+/* Круглая метка памятника (цвет — статус сохранности) */
+.object-marker {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+/* Группа близких меток: кружок с числом */
+.cluster-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  background: rgba(107, 66, 38, 0.92);
+  box-shadow: 0 0 0 4px rgba(107, 66, 38, 0.25), 0 1px 4px rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
 /* Квадратная метка музея на карте */
 .museum-marker {
   display: flex;
