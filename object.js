@@ -61,6 +61,7 @@ function render(obj, objects) {
           <a href="${mapUrl(obj)}">Показать на большой карте</a>
           ${obj.wiki ? `<a href="${escapeHtml(obj.wiki)}" target="_blank" rel="noopener">Статья в Википедии</a>` : ""}
           ${obj.website ? `<a href="${escapeHtml(obj.website)}" target="_blank" rel="noopener">Официальный сайт</a>` : ""}
+          <a href="propose.html?edit=${encodeURIComponent(obj.id)}" id="suggest-edit" hidden>✎ Предложить правку</a>
         </div>
       </div>
     </div>
@@ -74,6 +75,9 @@ function render(obj, objects) {
 
     <h2>На карте</h2>
     <div class="object-map" id="object-map"></div>`;
+
+  // Предложить правку можно, только когда сервер доступен
+  checkServer().then((available) => (document.getElementById("suggest-edit").hidden = !available));
 
   const miniMap = L.map("object-map", { scrollWheelZoom: false });
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {

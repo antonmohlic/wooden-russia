@@ -38,9 +38,14 @@ function render(user) {
         : ""
     }
 
-    <section class="panel">
+    <section class="panel" id="submissions">
       <h2>Мои предложения</h2>
-      <p class="form-hint">Скоро здесь можно будет предложить новый объект или исправление и следить за статусом.</p>
+      <p class="form-success" id="sent-message" hidden>Заявка отправлена на модерацию. Статус будет виден здесь.</p>
+      <p class="form-hint">
+        Чтобы предложить исправление, откройте страницу объекта и нажмите «Предложить правку».
+      </p>
+      <p><a class="button" href="propose.html">+ Предложить новый объект</a></p>
+      <div id="submissions-list"><p class="form-hint">Загрузка…</p></div>
     </section>
 
     <section class="panel">
@@ -103,6 +108,71 @@ function render(user) {
     logout();
     location.href = "index.html";
   });
+
+  if (new URLSearchParams(location.search).get("sent")) {
+    document.getElementById("sent-message").hidden = false;
+    history.replaceState(null, "", "account.html#submissions");
+  }
+  loadSubmissions();
+}
+
+// ---------- Мои заявки ----------
+
+const KIND_LABELS = { create: "Новый объект", update: "Правка", delete: "Удаление" };
+const SUBMISSION_STATUS = {
+  pending: { label: "на модерации", color: "#e08a00" },
+  approved: { label: "принята", color: "#2e7d32" },
+  rejected: { label: "отклонена", color: "#8a1c12" },
+};
+
+function submissionHtml(sub, objectsBySlug) {
+  const status = SUBMISSION_STATUS[sub.status] || { label: sub.status, color: "#555" };
+  const target = objectsBySlug.get(sub.target);
+  const name = sub.data?.name || target?.name || sub.target || "без названия";
+  const changed = sub.kind === "update" ? Object.keys(sub.data || {}).length : 0;
+  return `
+    <article class="submission">
+      <div class="submission-head">
+        <span class="status" style="background:${status.color}">${status.label}</span>
+        <strong>${KIND_LABELS[sub.kind] || sub.kind}:</strong>
+        ${target ? `<a href="${objectUrl(target)}">${escapeHtml(name)}</a>` : escapeHtml(name)}
+      </div>
+      <p class="submission-meta">
+        отправлена ${escapeHtml(formatDate(sub.created))}${changed ? ` · изменено полей: ${changed}` : ""}
+      </p>
+      ${sub.comment ? `<p class="submission-text">Ваш комментарий: ${escapeHtml(sub.comment)}</p>` : ""}
+      ${sub.admin_comment ? `<p class="submission-text submission-text--admin">Модератор: ${escapeHtml(sub.admin_comment)}</p>` : ""}
+      ${sub.status === "pending" ? `<button class="link-button" type="button" data-withdraw="${escapeHtml(sub.id)}">Отозвать заявку</button>` : ""}
+    </article>`;
+}
+
+async function loadSubmissions() {
+  const list = document.getElementById("submissions-list");
+  try {
+    const filter = encodeURIComponent(`author = "${currentUser().id}"`);
+    const [result, objects] = await Promise.all([
+      api("GET", `/api/collections/submissions/records?filter=${filter}&sort=-created&perPage=200`),
+      loadObjects(),
+    ]);
+    const objectsBySlug = new Map(objects.map((o) => [o.id, o]));
+    list.innerHTML = result.items.length
+      ? result.items.map((sub) => submissionHtml(sub, objectsBySlug)).join("")
+      : `<p class="form-hint">Вы пока ничего не предлагали.</p>`;
+  } catch (e) {
+    list.innerHTML = `<p class="form-error">${escapeHtml(e.message)}</p>`;
+  }
+
+  list.querySelectorAll("[data-withdraw]").forEach((button) =>
+    button.addEventListener("click", async () => {
+      if (!confirm("Отозвать заявку? Её нельзя будет вернуть.")) return;
+      try {
+        await api("DELETE", `/api/collections/submissions/records/${button.dataset.withdraw}`);
+        loadSubmissions();
+      } catch (e) {
+        alert(e.message);
+      }
+    })
+  );
 }
 
 (async () => {
