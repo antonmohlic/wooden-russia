@@ -112,6 +112,14 @@ function readValues(form, keys) {
   return values;
 }
 
+// Автор заявки. Почту PocketBase показывает, только если пользователь сам открыл её,
+// поэтому её отсутствие — не признак удалённого аккаунта; удалён — если записи автора нет совсем.
+function authorLabel(author) {
+  if (!author) return "пользователь удалён";
+  const name = escapeHtml(author.name || "без имени");
+  return author.email ? `${name} (${escapeHtml(author.email)})` : name;
+}
+
 // ---------- Карточка заявки ----------
 
 function changesTableHtml(sub, editable) {
@@ -154,7 +162,7 @@ function submissionCardHtml(sub) {
         ${target ? `<a href="${objectUrl(target)}" target="_blank">${escapeHtml(name)}</a>` : escapeHtml(name || "без названия")}
       </div>
       <p class="submission-meta">
-        от ${escapeHtml(author?.name || "без имени")} (${escapeHtml(author?.email || "пользователь удалён")}) · ${escapeHtml(formatDateTime(sub.created))}
+        от ${authorLabel(author)} · ${escapeHtml(formatDateTime(sub.created))}
       </p>
       ${sub.comment ? `<p class="submission-text">Комментарий автора: ${escapeHtml(sub.comment)}</p>` : ""}
       ${missingTarget ? `<p class="form-error">Объекта «${escapeHtml(sub.target)}» больше нет на сайте — заявку можно только отклонить.</p>` : ""}

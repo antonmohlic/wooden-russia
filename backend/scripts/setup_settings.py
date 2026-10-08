@@ -46,8 +46,9 @@ def main():
             "enabled": True,
             "rules": [
                 {"label": "*:auth", "maxRequests": 5, "duration": 60},
-                {"label": "/api/collections/users/records", "maxRequests": 10, "duration": 3600, "audience": "@guest"},
-                {"label": "/api/collections/submissions/records", "maxRequests": 30, "duration": 3600, "audience": "@auth"},
+                # Метки вида «таблица:действие» ограничивают только это действие, а не просмотр
+                {"label": "users:create", "maxRequests": 10, "duration": 3600, "audience": "@guest"},
+                {"label": "submissions:create", "maxRequests": 30, "duration": 3600, "audience": "@auth"},
                 {"label": "/api/", "maxRequests": 300, "duration": 10},
             ],
         },
