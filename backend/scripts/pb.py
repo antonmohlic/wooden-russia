@@ -1,8 +1,11 @@
 """Общие функции для служебных скриптов: подключение к PocketBase под администратором базы.
 
-Адрес и пароль берутся из backend/.env.local (этот файл не попадает в Git).
+Адрес и пароль берутся из backend/.env.local (локальная база) или из файла,
+указанного в переменной PB_ENV, например PB_ENV=.env.production (сервер).
+Эти файлы не попадают в Git.
 """
 import json
+import os
 import pathlib
 import urllib.error
 import urllib.request
@@ -13,7 +16,8 @@ PROJECT_DIR = BACKEND_DIR.parent
 
 def load_env():
     env = {}
-    for line in (BACKEND_DIR / ".env.local").read_text(encoding="utf-8").splitlines():
+    env_file = os.environ.get("PB_ENV", ".env.local")
+    for line in (BACKEND_DIR / env_file).read_text(encoding="utf-8").splitlines():
         if "=" in line and not line.startswith("#"):
             key, value = line.split("=", 1)
             env[key.strip()] = value.strip()

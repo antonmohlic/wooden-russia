@@ -9,3 +9,6 @@ backend/pb_data/
 
 # Локальные пароли и ключи — никогда не коммитить
 backend/.env.local
+
+# Пароли продакшен-сервера — никогда не коммитить
+backend/.env.production
