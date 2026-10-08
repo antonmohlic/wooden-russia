@@ -29,6 +29,16 @@ routerUse((e) => {
   return e.next();
 });
 
+// Админу сайта показываем почту пользователей (например, авторов заявок), чтобы с ними можно было связаться.
+// Остальным почта чужих пользователей по-прежнему скрыта. Менять чужие почту и пароль админ не может.
+onRecordEnrich((e) => {
+  const auth = e.requestInfo ? e.requestInfo.auth : null;
+  if (auth && auth.collection().name === "users" && auth.getString("role") === "admin") {
+    e.record.ignoreEmailVisibility(true);
+  }
+  return e.next();
+}, "users");
+
 // После регистрации сразу отправляем письмо со ссылкой для подтверждения почты.
 // Пока почта не подтверждена, участник не может предлагать объекты (правило в таблице submissions).
 onRecordAfterCreateSuccess((e) => {
