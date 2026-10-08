@@ -7,10 +7,14 @@ const STATUS_COLORS = {
   "утрачен": "#8a8a8a",
 };
 
+// Цвет меток музеев
+const MUSEUM_COLOR = "#6b4226";
+
 // Пункты меню. Чтобы добавить раздел, допишите сюда строку.
 const NAV_ITEMS = [
   { href: "index.html", label: "Карта" },
   { href: "catalog.html", label: "Каталог" },
+  { href: "museums.html", label: "Музеи" },
   { href: "about.html", label: "О сервисе" },
 ];
 
@@ -35,9 +39,14 @@ function toRoman(number) {
   return result;
 }
 
-// 1654 → 17
-function centuryOf(year) {
-  return year ? Math.ceil(year / 100) : null;
+function isMuseum(obj) {
+  return obj.type === "музей";
+}
+
+// Век объекта: из поля century, если точный год неизвестен, иначе из года (1654 → 17)
+function centuryOf(obj) {
+  if (obj.century) return obj.century;
+  return obj.year ? Math.ceil(obj.year / 100) : null;
 }
 
 // 17 → «XVII век»
@@ -45,16 +54,36 @@ function centuryLabel(century) {
   return `${toRoman(century)} век`;
 }
 
-// «церковь · 1654 г. (XVII век)»
+// Дата постройки для показа: «1581–1584 (XVI век)», «1654 (XVII век)» или «XVII век»
+function dateLabel(obj) {
+  const century = centuryOf(obj);
+  const text = obj.year_text || obj.year;
+  if (text && century && !String(text).includes("в")) return `${text} (${centuryLabel(century)})`;
+  if (text) return String(text);
+  return century ? centuryLabel(century) : "";
+}
+
+// Год для сортировки: точный год или середина века
+function sortYear(obj) {
+  if (obj.year) return obj.year;
+  const century = centuryOf(obj);
+  return century ? century * 100 - 50 : null;
+}
+
+// «церковь · 1654 (XVII век)» или «музей · основан в 1966 г.»
 function yearLine(obj) {
-  const parts = [obj.type];
-  if (obj.year) parts.push(`${obj.year} г. (${centuryLabel(centuryOf(obj.year))})`);
-  return parts.filter(Boolean).join(" · ");
+  if (isMuseum(obj)) return obj.founded ? `музей · основан в ${obj.founded} г.` : "музей";
+  return [obj.type, dateLabel(obj)].filter(Boolean).join(" · ");
 }
 
 function statusBadge(status) {
+  if (!status) return "";
   const color = STATUS_COLORS[status] || "#555";
   return `<span class="status" style="background:${color}">${escapeHtml(status)}</span>`;
+}
+
+function museumBadge() {
+  return `<span class="status" style="background:${MUSEUM_COLOR}">музейный комплекс</span>`;
 }
 
 // Адрес фото нужной ширины. Wikimedia Commons сам отдаёт уменьшенную копию.
@@ -126,7 +155,7 @@ function renderHeader() {
 
 // ---------- Фильтры (общие для карты и каталога) ----------
 
-const FILTER_KEYS = ["q", "region", "type", "century", "status"];
+const FILTER_KEYS = ["q", "region", "type", "century", "status", "museum"];
 
 // Приводит текст к виду для поиска: без регистра, «ё» = «е»
 function normalize(text) {
@@ -146,7 +175,8 @@ function selectHtml(name, placeholder, options) {
 // Состояние хранится в адресе страницы, поэтому ссылкой с фильтрами можно поделиться.
 function createFilters(container, objects, onChange) {
   const toOptions = (values) => values.map((v) => [v, v]);
-  const centuries = [...new Set(objects.map((o) => centuryOf(o.year)).filter(Boolean))].sort((a, b) => a - b);
+  const centuries = [...new Set(objects.map(centuryOf).filter(Boolean))].sort((a, b) => a - b);
+  const museums = objects.filter(isMuseum).sort((a, b) => a.name.localeCompare(b.name, "ru"));
 
   container.innerHTML = `
     <input type="search" name="q" placeholder="Поиск: название, село, район…" autocomplete="off">
@@ -154,6 +184,11 @@ function createFilters(container, objects, onChange) {
     ${selectHtml("type", "Все типы", toOptions(uniqueSorted(objects.map((o) => o.type))))}
     ${selectHtml("century", "Любой век", centuries.map((c) => [c, centuryLabel(c)]))}
     ${selectHtml("status", "Любой статус", toOptions(Object.keys(STATUS_COLORS)))}
+    ${selectHtml("museum", "Музеи и вне музеев", [
+      ["none", "Только вне музеев"],
+      ["any", "Только в музеях"],
+      ...museums.map((m) => [m.id, m.name]),
+    ])}
     <button type="button" class="filters-reset">Сбросить</button>`;
 
   const fields = Object.fromEntries(FILTER_KEYS.map((key) => [key, container.querySelector(`[name="${key}"]`)]));
@@ -184,14 +219,24 @@ function createFilters(container, objects, onChange) {
   onChange(getState());
 }
 
+// Подходит ли объект под фильтр «Музей»
+function matchesMuseum(obj, value) {
+  if (!value) return true;
+  const museumId = isMuseum(obj) ? obj.id : obj.museum;
+  if (value === "none") return !museumId;
+  if (value === "any") return Boolean(museumId);
+  return museumId === value;
+}
+
 function filterObjects(objects, state) {
   const query = normalize(state.q);
   return objects.filter((obj) => {
-    if (query && !normalize(`${obj.name} ${obj.address} ${obj.region}`).includes(query)) return false;
+    if (query && !normalize(`${obj.name} ${obj.address} ${obj.region} ${obj.origin || ""}`).includes(query)) return false;
     if (state.region && obj.region !== state.region) return false;
     if (state.type && obj.type !== state.type) return false;
-    if (state.century && String(centuryOf(obj.year)) !== state.century) return false;
+    if (state.century && String(centuryOf(obj)) !== state.century) return false;
     if (state.status && obj.status !== state.status) return false;
+    if (!matchesMuseum(obj, state.museum)) return false;
     return true;
   });
 }

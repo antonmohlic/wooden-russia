@@ -2,11 +2,14 @@
 
 const SORTERS = {
   "name": (a, b) => a.name.localeCompare(b.name, "ru"),
-  "year-asc": (a, b) => (a.year || 9999) - (b.year || 9999),
-  "year-desc": (a, b) => (b.year || 0) - (a.year || 0),
+  "year-asc": (a, b) => (sortYear(a) || 9999) - (sortYear(b) || 9999),
+  "year-desc": (a, b) => (sortYear(b) || 0) - (sortYear(a) || 0),
 };
 
+let museumsById = new Map();
+
 function cardHtml(obj) {
+  const museum = museumsById.get(obj.museum);
   return `
     <article class="catalog-card">
       <a class="catalog-photo" href="${objectUrl(obj)}">
@@ -15,9 +18,10 @@ function cardHtml(obj) {
       ${photoCredit(obj)}
       <div class="catalog-body">
         <h2><a href="${objectUrl(obj)}">${escapeHtml(obj.name)}</a></h2>
+        ${museum ? `<p>В музее: <a href="${objectUrl(museum)}">${escapeHtml(museum.name)}</a></p>` : ""}
         <p>${escapeHtml(obj.address)}</p>
         <p>${escapeHtml(yearLine(obj))}</p>
-        ${statusBadge(obj.status)}
+        ${isMuseum(obj) ? museumBadge() : statusBadge(obj.status)}
         <div class="card-links">
           <a href="${objectUrl(obj)}">Подробнее</a>
           <a href="${mapUrl(obj)}">На карте</a>
@@ -33,6 +37,7 @@ const count = document.getElementById("count");
 
 loadObjects()
   .then((objects) => {
+    museumsById = new Map(objects.filter(isMuseum).map((m) => [m.id, m]));
     let filterState = {};
 
     const render = () => {

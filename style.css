@@ -261,6 +261,80 @@ a.credit:hover { text-decoration: underline; }
   box-shadow: var(--shadow);
 }
 
+/* Памятники на странице музея */
+.mini-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.mini-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.mini-card img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  background: #ddd;
+}
+
+.mini-card-title { padding: 8px 10px 0; font-weight: 600; font-size: 14px; }
+.mini-card-meta { padding: 0 10px 10px; color: var(--muted); font-size: 13px; }
+.mini-card:hover .mini-card-title { color: var(--wood); }
+
+/* ---------- Страница «Музеи» ---------- */
+
+.museum-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.museum-card {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  overflow: hidden;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.museum-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  object-fit: cover;
+  background: #ddd;
+}
+
+.museum-body { padding: 16px 20px; }
+.museum-body h2 { margin: 0 0 4px; font-size: 21px; }
+.museum-body h2 a { color: var(--text); text-decoration: none; }
+.museum-body h2 a:hover { color: var(--wood); }
+.museum-body h3 { margin: 14px 0 6px; font-size: 15px; }
+.museum-meta { margin: 0 0 8px; color: var(--muted); font-size: 14px; }
+
+.museum-items {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.museum-items span { color: var(--muted); font-size: 14px; }
+
+@media (max-width: 760px) {
+  .museum-card { grid-template-columns: 1fr; }
+  .museum-photo img { height: 200px; min-height: 0; }
+}
+
 @media (max-width: 760px) {
   .object-layout { grid-template-columns: 1fr; }
   .page h1 { font-size: 24px; }
@@ -351,7 +425,33 @@ a.credit:hover { text-decoration: underline; }
   vertical-align: -1px;
 }
 
+.dot--museum {
+  background: #6b4226;
+  border-radius: 3px;
+}
+
+/* Квадратная метка музея на карте */
+.museum-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 2px solid #fff;
+  border-radius: 6px;
+  background: #6b4226;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 /* Карточка во всплывающем окне карты */
+.popup-list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+}
 .popup-card { width: 250px; }
 
 .popup-card img {
