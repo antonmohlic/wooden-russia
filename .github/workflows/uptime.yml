@@ -1,0 +1,41 @@
+# Проверка, что сайт работает. Каждые 15 минут GitHub открывает сайт снаружи;
+# если проверка не прошла, GitHub присылает письмо владельцу репозитория.
+name: Сайт работает?
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}   # кнопка «Run workflow» для ручной проверки
+
+env:
+  SITE_URL: https://195-19-219-160.sslip.io
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Главная страница открывается
+        run: |
+          for attempt in 1 2 3; do
+            if curl -fsS --max-time 20 "$SITE_URL/" | grep -q "Открытый каталог"; then echo "OK"; exit 0; fi
+            echo "Попытка $attempt не удалась, жду 30 секунд…"; sleep 30
+          done
+          echo "::error::Главная страница сайта не открывается: $SITE_URL"; exit 1
+
+      - name: Сервер и база отвечают
+        run: |
+          for attempt in 1 2 3; do
+            count=$(curl -fsS --max-time 20 "$SITE_URL/api/collections/objects/records?perPage=1" | python3 -c "import sys,json; print(json.load(sys.stdin)['totalItems'])" 2>/dev/null || echo 0)
+            if [ "$count" -gt 0 ]; then echo "Объектов в каталоге: $count"; exit 0; fi
+            echo "Попытка $attempt не удалась, жду 30 секунд…"; sleep 30
+          done
+          echo "::error::База не отдаёт объекты: $SITE_URL/api/"; exit 1
+
+      - name: HTTPS-сертификат не истекает
+        run: |
+          host=$(echo "$SITE_URL" | sed -E 's#https?://([^/]+).*#\1#')
+          end=$(echo | openssl s_client -connect "$host:443" -servername "$host" 2>/dev/null | openssl x509 -noout -enddate | cut -d= -f2)
+          days=$(( ( $(date -d "$end" +%s) - $(date +%s) ) / 86400 ))
+          echo "Сертификат действует ещё $days дн. (до $end)"
+          if [ "$days" -lt 10 ]; then echo "::error::Сертификат истекает через $days дн."; exit 1; fi

@@ -20,7 +20,7 @@ VERSION=$(git rev-parse --short HEAD)
 echo "Выкладываю версию $VERSION на $SSH_TARGET…"
 
 # Архив из Git: сайт (всё, кроме backend/) и миграции
-git archive --format=tar HEAD -- . ':!backend' ':!.gitignore' ':!README.md' > /tmp/wr_site.tar
+git archive --format=tar HEAD -- . ':!backend' ':!.gitignore' ':!README.md' ':!.github' > /tmp/wr_site.tar
 git archive --format=tar HEAD -- backend/pb_migrations backend/pb_hooks > /tmp/wr_migrations.tar
 
 { cat /tmp/wr_site.tar; } | "${SSH_CMD[@]}" "set -e
