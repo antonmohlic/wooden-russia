@@ -41,6 +41,7 @@ VERIFICATION_TEMPLATE = {
 
 OBJECT_TYPES = ["церковь", "часовня", "колокольня", "изба", "амбар", "мельница", "музей", "другое"]
 STATUSES = ["сохранился", "аварийный", "утрачен"]
+OBSERVATION_CONDITIONS = ["хорошее", "удовлетворительное", "плохое", "аварийное", "руины"]
 
 
 def text(name, required=False, max_length=0, pattern=""):
@@ -110,7 +111,7 @@ def main():
     })
 
     # --- Объекты: читать могут все, менять — только админ сайта ---
-    upsert(pb, {
+    objects = upsert(pb, {
         "name": "objects",
         "type": "base",
         "fields": [
@@ -180,6 +181,45 @@ def main():
         # Рассматривает заявки только админ
         "updateRule": IS_ADMIN,
         # Автор может отозвать заявку, пока она не рассмотрена
+        "deleteRule": f'({is_author} && status = "pending") || {IS_ADMIN}',
+    })
+
+    # --- Наблюдения за состоянием: «был там тогда-то, вот что увидел» + фото ---
+    upsert(pb, {
+        "name": "observations",
+        "type": "base",
+        "fields": [
+            {"name": "object", "type": "relation", "required": True, "collectionId": objects["id"],
+             "maxSelect": 1, "cascadeDelete": True},
+            {"name": "author", "type": "relation", "required": True, "collectionId": users["id"],
+             "maxSelect": 1, "cascadeDelete": True},
+            # Имя автора на момент публикации — подставляет сервер (pb_hooks), чтобы его видели все,
+            # не открывая доступ к таблице пользователей
+            text("author_name", max_length=255),
+            {"name": "visited_on", "type": "date", "required": True},
+            select("condition", OBSERVATION_CONDITIONS, required=True),
+            text("text", max_length=3000),
+            {"name": "photos", "type": "file", "maxSelect": 5, "maxSize": 8 * 1024 * 1024,
+             "mimeTypes": ["image/jpeg", "image/png", "image/webp"], "thumbs": ["600x0", "240x240"]},
+            select("status", ["pending", "approved", "rejected"], required=True),
+            text("admin_comment", max_length=2000),
+            {"name": "reviewed_by", "type": "relation", "collectionId": users["id"], "maxSelect": 1},
+            {"name": "reviewed_at", "type": "date"},
+            *autodates(),
+        ],
+        # Принятые наблюдения видят все; свои непроверенные — автор; все — админ
+        "listRule": f'status = "approved" || (@request.auth.id != "" && ({is_author} || {IS_ADMIN}))',
+        "viewRule": f'status = "approved" || (@request.auth.id != "" && ({is_author} || {IS_ADMIN}))',
+        # Добавить — только с подтверждённой почтой, от своего имени, на модерацию
+        "createRule": (
+            '@request.auth.id != "" && @request.auth.verified = true'
+            " && @request.body.author = @request.auth.id"
+            ' && @request.body.status = "pending"'
+            " && @request.body.admin_comment:isset = false"
+            " && @request.body.reviewed_by:isset = false"
+            " && @request.body.reviewed_at:isset = false"
+        ),
+        "updateRule": IS_ADMIN,
         "deleteRule": f'({is_author} && status = "pending") || {IS_ADMIN}',
     })
 

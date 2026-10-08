@@ -49,6 +49,7 @@ def main():
                 # Метки вида «таблица:действие» ограничивают только это действие, а не просмотр
                 {"label": "users:create", "maxRequests": 10, "duration": 3600, "audience": "@guest"},
                 {"label": "submissions:create", "maxRequests": 30, "duration": 3600, "audience": "@auth"},
+                {"label": "observations:create", "maxRequests": 20, "duration": 3600, "audience": "@auth"},
                 {"label": "/api/", "maxRequests": 300, "duration": 10},
             ],
         },

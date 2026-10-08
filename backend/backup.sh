@@ -53,6 +53,18 @@ EOF
 
 echo "Сохранено: $FILE ($(du -h "$FILE" | cut -f1))"
 
+# Загруженные файлы (фото наблюдений) хранятся отдельно от базы — в pb_data/storage
+FILES="backups/wooden-russia_${STAMP}_files.tar.gz"
+ssh -i "$SSH_KEY" -o BatchMode=yes "$SSH_TARGET" '
+  if [ -d /opt/wooden-russia/pb_data/storage ]; then tar -czf - -C /opt/wooden-russia/pb_data storage; fi
+' > "$FILES"
+if [ -s "$FILES" ]; then
+  echo "Фото и файлы: $FILES ($(du -h "$FILES" | cut -f1), файлов: $(tar -tzf "$FILES" | grep -vc '/$'))"
+else
+  rm -f "$FILES"; echo "Загруженных файлов пока нет"
+fi
+
 # Удаляем самые старые копии, оставляем последние $KEEP
 ls -1t backups/wooden-russia_*.db.gz | tail -n +$((KEEP + 1)) | xargs -r rm -f
+ls -1t backups/wooden-russia_*_files.tar.gz 2>/dev/null | tail -n +$((KEEP + 1)) | xargs -r rm -f
 echo "Копий на этом компьютере: $(ls -1 backups/wooden-russia_*.db.gz | wc -l)"

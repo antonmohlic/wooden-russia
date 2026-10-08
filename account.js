@@ -67,6 +67,12 @@ function render(user) {
       <div id="submissions-list"><p class="form-hint">Загрузка…</p></div>
     </section>
 
+    <section class="panel" id="my-observations">
+      <h2>Мои наблюдения</h2>
+      <p class="form-hint">Были у памятника? Откройте его страницу и нажмите «Я был здесь — добавить наблюдение».</p>
+      <div id="observations-list"><p class="form-hint">Загрузка…</p></div>
+    </section>
+
     <section class="panel">
       <h2>Смена пароля</h2>
       <form class="form" id="password-form">
@@ -153,11 +159,44 @@ function render(user) {
     history.replaceState(null, "", "account.html#submissions");
   }
   loadSubmissions();
+  loadMyObservations(user);
 
   if (user.role === "admin") {
-    api("GET", `/api/collections/submissions/records?filter=${encodeURIComponent('status = "pending"')}&perPage=1&fields=id`)
-      .then((result) => (document.getElementById("pending-total").textContent = result.totalItems))
+    const pending = encodeURIComponent('status = "pending"');
+    Promise.all(
+      ["submissions", "observations"].map((c) => api("GET", `/api/collections/${c}/records?filter=${pending}&perPage=1&fields=id`))
+    )
+      .then(([subs, obs]) => (document.getElementById("pending-total").textContent = `${subs.totalItems} заявок, ${obs.totalItems} наблюдений`))
       .catch(() => (document.getElementById("pending-total").textContent = "?"));
+  }
+}
+
+// ---------- Мои наблюдения ----------
+
+async function loadMyObservations(user) {
+  const list = document.getElementById("observations-list");
+  try {
+    const filter = encodeURIComponent(`author = "${user.id}"`);
+    const result = await api("GET", `/api/collections/observations/records?filter=${filter}&sort=-created&perPage=100&expand=object`);
+    list.innerHTML = result.items.length
+      ? result.items
+          .map((obs) => {
+            const status = SUBMISSION_STATUS[obs.status] || { label: obs.status, color: "#555" };
+            const object = obs.expand?.object;
+            return `
+              <article class="submission">
+                <div class="submission-head">
+                  <span class="status" style="background:${status.color}">${status.label === "принята" ? "опубликовано" : status.label}</span>
+                  ${object ? `<a href="object.html?id=${encodeURIComponent(object.slug)}">${escapeHtml(object.name)}</a>` : "объект удалён"}
+                </div>
+                ${observationHtml(obs)}
+                ${obs.admin_comment ? `<p class="submission-text submission-text--admin">Модератор: ${escapeHtml(obs.admin_comment)}</p>` : ""}
+              </article>`;
+          })
+          .join("")
+      : `<p class="form-hint">Вы пока не добавляли наблюдений.</p>`;
+  } catch (e) {
+    list.innerHTML = `<p class="form-error">${escapeHtml(e.message)}</p>`;
   }
 }
 

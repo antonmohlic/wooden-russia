@@ -246,18 +246,31 @@ async function reloadObjects() {
   objectsBySlug = new Map(objects.map((o) => [o.id, o]));
 }
 
+// Что сейчас проверяем: заявки на объекты или наблюдения за состоянием
+let currentType = "submissions";
+
+async function countPending(collection) {
+  const filter = encodeURIComponent('status = "pending"');
+  return (await api("GET", `/api/collections/${collection}/records?filter=${filter}&perPage=1&fields=id`)).totalItems;
+}
+
+async function updatePendingCounts() {
+  const [subs, obs] = await Promise.all([countPending("submissions"), countPending("observations")]);
+  document.getElementById("count-submissions").textContent = subs;
+  document.getElementById("count-observations").textContent = obs;
+  document.getElementById("pending-count").textContent = currentType === "submissions" ? subs : obs;
+}
+
 async function renderList() {
   const list = document.getElementById("moderation-list");
   list.innerHTML = `<p class="form-hint">Загрузка…</p>`;
+  updatePendingCounts().catch(() => {});
+  if (currentType === "observations") return renderObservationList(list);
 
   const filter = encodeURIComponent(`status = "${currentTab}"`);
   const sort = currentTab === "pending" ? "created" : "-reviewed_at";
-  const [result, pendingCount] = await Promise.all([
-    api("GET", `/api/collections/submissions/records?filter=${filter}&sort=${sort}&perPage=100&expand=author,reviewed_by`),
-    api("GET", `/api/collections/submissions/records?filter=${encodeURIComponent('status = "pending"')}&perPage=1&fields=id`),
-  ]);
+  const result = await api("GET", `/api/collections/submissions/records?filter=${filter}&sort=${sort}&perPage=100&expand=author,reviewed_by`);
 
-  document.getElementById("pending-count").textContent = pendingCount.totalItems;
   list.innerHTML = result.items.length
     ? result.items.map(submissionCardHtml).join("")
     : `<p class="form-hint">${currentTab === "pending" ? "Новых заявок нет." : "Здесь пока пусто."}</p>`;
@@ -287,10 +300,101 @@ async function renderList() {
   );
 }
 
+// ---------- Наблюдения за состоянием ----------
+
+function observationCardHtml(obs) {
+  const object = obs.expand?.object;
+  const pending = obs.status === "pending";
+  return `
+    <article class="panel moderation-card" data-id="${escapeHtml(obs.id)}">
+      <div class="submission-head">
+        <strong>Наблюдение:</strong>
+        ${object ? `<a href="object.html?id=${encodeURIComponent(object.slug)}" target="_blank">${escapeHtml(object.name)}</a>` : "объект удалён"}
+      </div>
+      <p class="submission-meta">от ${authorLabel(obs.expand?.author)} · отправлено ${escapeHtml(formatDateTime(obs.created))}</p>
+      ${observationHtml(obs)}
+      ${object ? `<p class="submission-meta">Текущий статус объекта на сайте: ${statusBadge(object.status) || "не указан"}</p>` : ""}
+      <form class="form">
+        ${
+          pending
+            ? `${object ? `<label>Изменить статус объекта при принятии
+                 <select name="object_status">
+                   <option value="">не менять</option>
+                   ${Object.keys(STATUS_COLORS).map((s) => `<option value="${s}">${s}</option>`).join("")}
+                 </select>
+               </label>` : ""}
+               <label>Комментарий автору (обязателен при отклонении)
+                 <textarea name="admin_comment" rows="2" maxlength="2000"></textarea>
+               </label>
+               <p class="form-error" role="alert" hidden></p>
+               <div class="moderation-actions">
+                 <button class="button" type="button" data-action="approve">Опубликовать</button>
+                 <button class="button button--secondary" type="button" data-action="reject">Отклонить</button>
+               </div>`
+            : `<p class="submission-meta">${obs.status === "approved" ? "Опубликовано" : "Отклонено"} ${escapeHtml(formatDateTime(obs.reviewed_at))}</p>
+               ${obs.admin_comment ? `<p class="submission-text submission-text--admin">Ответ: ${escapeHtml(obs.admin_comment)}</p>` : ""}`
+        }
+      </form>
+    </article>`;
+}
+
+async function reviewObservation(obs, form, status) {
+  const comment = form.elements.admin_comment.value.trim();
+  if (status === "rejected" && !comment) throw new Error("Напишите автору, почему наблюдение отклонено.");
+  const newObjectStatus = form.elements.object_status?.value;
+  if (status === "approved" && newObjectStatus && obs.expand?.object) {
+    await api("PATCH", `/api/collections/objects/records/${obs.expand.object.id}`, { status: newObjectStatus });
+  }
+  await api("PATCH", `/api/collections/observations/records/${obs.id}`, {
+    status,
+    admin_comment: comment,
+    reviewed_by: currentUser().id,
+    reviewed_at: new Date().toISOString().replace("T", " "),
+  });
+}
+
+async function renderObservationList(list) {
+  const filter = encodeURIComponent(`status = "${currentTab}"`);
+  const sort = currentTab === "pending" ? "created" : "-reviewed_at";
+  const result = await api("GET", `/api/collections/observations/records?filter=${filter}&sort=${sort}&perPage=100&expand=author,object`);
+
+  list.innerHTML = result.items.length
+    ? result.items.map(observationCardHtml).join("")
+    : `<p class="form-hint">${currentTab === "pending" ? "Новых наблюдений нет." : "Здесь пока пусто."}</p>`;
+
+  const byId = new Map(result.items.map((o) => [o.id, o]));
+  list.querySelectorAll("[data-action]").forEach((button) =>
+    button.addEventListener("click", async () => {
+      const card = button.closest(".moderation-card");
+      const form = card.querySelector("form");
+      const error = form.querySelector(".form-error");
+      error.hidden = true;
+      card.querySelectorAll("button").forEach((b) => (b.disabled = true));
+      try {
+        await reviewObservation(byId.get(card.dataset.id), form, button.dataset.action === "approve" ? "approved" : "rejected");
+        await renderList();
+        return;
+      } catch (e) {
+        error.textContent = e.message;
+        error.hidden = false;
+      }
+      card.querySelectorAll("button").forEach((b) => (b.disabled = false));
+    })
+  );
+}
+
 function renderPage() {
   root.innerHTML = `
     <p class="breadcrumbs"><a href="account.html">← Личный кабинет</a></p>
     <h1>Модерация</h1>
+    <div class="type-switch" role="group" aria-label="Что проверяем">
+      <button class="type-button${currentType === "submissions" ? " active" : ""}" type="button" data-type="submissions">
+        Заявки на объекты (<span id="count-submissions">…</span>)
+      </button>
+      <button class="type-button${currentType === "observations" ? " active" : ""}" type="button" data-type="observations">
+        Наблюдения за состоянием (<span id="count-observations">…</span>)
+      </button>
+    </div>
     <div class="tabs" role="tablist">
       ${STATUS_TABS.map(
         ([key, label]) =>
@@ -300,6 +404,14 @@ function renderPage() {
       ).join("")}
     </div>
     <div id="moderation-list"></div>`;
+
+  root.querySelectorAll(".type-button").forEach((button) =>
+    button.addEventListener("click", () => {
+      currentType = button.dataset.type;
+      root.querySelectorAll(".type-button").forEach((b) => b.classList.toggle("active", b === button));
+      renderList().catch(showLoadError);
+    })
+  );
 
   root.querySelectorAll(".tab").forEach((tab) =>
     tab.addEventListener("click", () => {

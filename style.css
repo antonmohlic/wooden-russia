@@ -369,6 +369,86 @@ a.button {
   background: var(--bg);
 }
 
+/* ---------- Наблюдения за состоянием ---------- */
+
+.obs-section {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.obs-section h2 { margin: 0; }
+.obs-latest { margin: 0; font-size: 15px; }
+.obs-section > .button { align-self: flex-start; }
+
+.observation {
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+
+.observation-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.observation-text {
+  margin: 8px 0 0;
+  white-space: pre-line;
+}
+
+.obs-photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.obs-photos img {
+  display: block;
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #ddd;
+}
+
+.checkbox {
+  flex-direction: row !important;
+  align-items: flex-start;
+  gap: 8px !important;
+  color: var(--text) !important;
+}
+
+.checkbox input { margin-top: 3px; }
+
+/* Переключатель «Заявки / Наблюдения» в модерации */
+.type-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.type-button {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.type-button.active {
+  border-color: var(--wood);
+  background: var(--wood);
+  color: #fff;
+}
+
 /* Модерация */
 .moderation-card { margin-top: 16px; }
 

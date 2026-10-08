@@ -72,6 +72,7 @@ const FIELD_NAMES = {
 
 function translateError(status, body) {
   if (status === 0) return "Нет связи с сервером. Проверьте интернет и попробуйте ещё раз.";
+  if (status === 413) return "Файлы слишком большие. Попробуйте меньше фото за раз.";
   if (status === 429) return "Слишком много попыток. Подождите немного и попробуйте снова.";
   const fields = body && body.data ? Object.entries(body.data) : [];
   if (fields.length) {
@@ -91,15 +92,17 @@ function translateError(status, body) {
   return "Что-то пошло не так. Попробуйте ещё раз.";
 }
 
+// body — объект (уйдёт как JSON) или FormData (для загрузки файлов)
 async function api(method, path, body) {
-  const headers = { "Content-Type": "application/json" };
+  const isForm = body instanceof FormData;
+  const headers = isForm ? {} : { "Content-Type": "application/json" };
   if (currentAuth) headers.Authorization = currentAuth.token;
   let response;
   try {
     response = await fetch(API_URL + path, {
       method,
       headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
     });
   } catch {
     throw new ApiError(0, null);
@@ -179,6 +182,12 @@ async function updateProfile(fields) {
   currentAuth = { ...currentAuth, record };
   storeAuth(currentAuth);
   return record;
+}
+
+// Ссылка на загруженный файл записи. thumb — размер уменьшенной копии, например "600x0"
+function fileUrl(collection, recordId, fileName, thumb) {
+  const url = `${API_URL}/api/files/${collection}/${recordId}/${encodeURIComponent(fileName)}`;
+  return thumb ? `${url}?thumb=${thumb}` : url;
 }
 
 // ---------- Объекты ----------

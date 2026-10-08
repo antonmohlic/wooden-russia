@@ -73,8 +73,12 @@ function render(obj, objects) {
         : ""
     }
 
+    <section class="obs-section" id="observations"></section>
+
     <h2>На карте</h2>
     <div class="object-map" id="object-map"></div>`;
+
+  renderObservationsSection(document.getElementById("observations"), obj);
 
   // Предложить правку можно, только когда сервер доступен
   checkServer().then((available) => (document.getElementById("suggest-edit").hidden = !available));
