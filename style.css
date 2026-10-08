@@ -51,10 +51,18 @@ h1, h2, h3 { line-height: 1.25; }
   text-decoration: none;
 }
 
+/* Знак-тройник: пропорции 3 : 2 */
 .brand-logo {
+  display: block;
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 69px;
+  height: 46px;
+}
+
+.brand-logo svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .brand-text {
@@ -101,7 +109,7 @@ h1, h2, h3 { line-height: 1.25; }
 }
 
 @media (max-width: 760px) {
-  .brand-logo { width: 34px; height: 34px; }
+  .brand-logo { width: 54px; height: 36px; }
   .brand-title { font-size: 16px; }
   .brand-subtitle { font-size: 12px; }
   .menu-toggle { display: block; }
