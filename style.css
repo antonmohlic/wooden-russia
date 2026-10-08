@@ -1,0 +1,381 @@
+:root {
+  --wood: #6b4226;
+  --wood-dark: #4e2f1a;
+  --bg: #f6f1e9;
+  --surface: #ffffff;
+  --text: #2b2118;
+  --muted: #7a6a5a;
+  --border: #e2d8ca;
+  --radius: 8px;
+  --shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.5;
+}
+
+a { color: var(--wood); }
+
+h1, h2, h3 { line-height: 1.25; }
+
+/* ---------- Шапка и меню ---------- */
+
+.site-header {
+  position: relative;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  min-height: 56px;
+  background: var(--wood);
+  color: #fff;
+}
+
+.brand {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-right: auto;
+}
+
+.site-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.site-nav a {
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: #fff;
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+.site-nav a:hover { opacity: 1; background: rgba(255, 255, 255, 0.12); }
+.site-nav a.active { opacity: 1; background: var(--wood-dark); }
+
+.menu-toggle {
+  display: none;
+  padding: 4px 10px;
+  border: 0;
+  background: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .brand { font-size: 16px; }
+  .menu-toggle { display: block; }
+
+  .site-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    padding: 8px;
+    background: var(--wood);
+    box-shadow: var(--shadow);
+  }
+
+  .site-header.menu-open .site-nav { display: flex; }
+  .site-nav a { padding: 12px; }
+}
+
+/* ---------- Обычные страницы ---------- */
+
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.page--text { max-width: 760px; }
+
+.page h1 { margin: 0 0 16px; font-size: 28px; }
+
+.lead { font-size: 18px; }
+
+.breadcrumbs { margin: 0 0 8px; }
+
+/* ---------- Фильтры ---------- */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filters input,
+.filters select,
+.filters button,
+.sort select {
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.filters input[type="search"] { flex: 1 1 260px; }
+.filters button { cursor: pointer; }
+.filters button:hover { border-color: var(--wood); }
+
+.filters--column { flex-direction: column; }
+.filters--column input[type="search"] { flex: none; }
+
+.results-count {
+  margin: 12px 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* ---------- Статус и подписи ---------- */
+
+.status {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 12px;
+}
+
+.credit {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+a.credit:hover { text-decoration: underline; }
+
+.card-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ---------- Каталог ---------- */
+
+.catalog-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sort { font-size: 14px; color: var(--muted); }
+
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.catalog-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.catalog-photo img {
+  display: block;
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  background: #ddd;
+}
+
+.catalog-card > .credit { padding: 0 12px; }
+
+.catalog-body { padding: 4px 12px 14px; }
+
+.catalog-body h2 { margin: 6px 0 4px; font-size: 17px; }
+.catalog-body h2 a { color: var(--text); text-decoration: none; }
+.catalog-body h2 a:hover { color: var(--wood); }
+
+.catalog-body p {
+  margin: 2px 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.catalog-body .status { margin-top: 6px; }
+
+.empty { color: var(--muted); }
+
+/* ---------- Страница объекта ---------- */
+
+.object-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.object-photo { margin: 0; }
+
+.object-photo img {
+  display: block;
+  width: 100%;
+  border-radius: var(--radius);
+  background: #ddd;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 16px;
+  margin: 12px 0;
+  font-size: 15px;
+}
+
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; }
+
+.description { margin: 12px 0; }
+
+.object-map {
+  height: 360px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+@media (max-width: 760px) {
+  .object-layout { grid-template-columns: 1fr; }
+  .page h1 { font-size: 24px; }
+}
+
+/* ---------- Страница карты ---------- */
+
+.page-map {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+}
+
+.map-layout {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.map-panel {
+  width: 290px;
+  flex-shrink: 0;
+  padding: 16px;
+  overflow-y: auto;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+}
+
+.panel-title { margin: 0 0 12px; font-size: 18px; }
+
+#map { flex: 1; }
+
+.panel-toggle {
+  display: none;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1100;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .panel-toggle { display: block; }
+
+  .map-panel {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 1050;
+    width: auto;
+    border: 0;
+  }
+
+  .map-panel.open { display: block; }
+}
+
+.legend {
+  position: absolute;
+  left: 12px;
+  bottom: 24px;
+  z-index: 1000;
+  padding: 8px 12px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 6px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
+  vertical-align: -1px;
+}
+
+/* Карточка во всплывающем окне карты */
+.popup-card { width: 250px; }
+
+.popup-card img {
+  display: block;
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #ddd;
+}
+
+.popup-card h3 { margin: 6px 0 4px; font-size: 15px; }
+
+.popup-card p {
+  margin: 2px 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.popup-card .status { margin-top: 4px; }
+
+.popup-links {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  font-weight: 600;
+}

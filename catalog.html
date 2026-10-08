@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Каталог — Деревянное зодчество России</title>
+  <meta name="description" content="Каталог памятников деревянного зодчества России с поиском и фильтрами">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <h1>Каталог объектов</h1>
+
+    <div class="filters" id="filters"></div>
+
+    <div class="catalog-toolbar">
+      <p class="results-count" id="count">Загрузка…</p>
+      <label class="sort">
+        Сортировка:
+        <select id="sort">
+          <option value="name">по названию</option>
+          <option value="year-asc">сначала старые</option>
+          <option value="year-desc">сначала новые</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="catalog-grid" id="catalog"></div>
+  </main>
+
+  <script src="common.js"></script>
+  <script src="catalog.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Карта объектов — Деревянное зодчество России</title>
+  <meta name="description" content="Карта памятников деревянного зодчества России">
+
+  <!-- Библиотека карт Leaflet -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-map">
+  <div class="map-layout">
+    <aside class="map-panel" id="map-panel">
+      <h2 class="panel-title">Фильтры</h2>
+      <div class="filters filters--column" id="filters"></div>
+      <p class="results-count" id="count">Загрузка…</p>
+    </aside>
+
+    <main id="map"></main>
+
+    <button class="panel-toggle" id="panel-toggle" type="button" aria-controls="map-panel" aria-expanded="false">Фильтры</button>
+
+    <div class="legend">
+      <div><span class="dot" style="background:#2e7d32"></span>сохранился</div>
+      <div><span class="dot" style="background:#e08a00"></span>аварийный</div>
+      <div><span class="dot" style="background:#8a8a8a"></span>утрачен</div>
+    </div>
+  </div>
+
+  <script src="common.js"></script>
+  <script src="map.js"></script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>О сервисе — Деревянное зодчество России</title>
+  <meta name="description" content="О проекте: цели, источники данных и контакты">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page page--text">
+    <h1>О сервисе</h1>
+
+    <p class="lead">
+      «Деревянное зодчество России» — карта и каталог деревянных храмов, часовен,
+      колоколен и других построек: сохранившихся, находящихся под угрозой и уже утраченных.
+    </p>
+
+    <h2>Зачем этот проект</h2>
+    <ul>
+      <li>Собрать в одном месте памятники деревянного зодчества, которые сейчас разбросаны по статьям, справочникам и фотоархивам.</li>
+      <li>Показать на карте, где они находятся, чтобы их было проще найти и спланировать поездку.</li>
+      <li>Обратить внимание на памятники в аварийном состоянии, пока их ещё можно спасти, и сохранить память об утраченных.</li>
+    </ul>
+
+    <h2>Источники и лицензии</h2>
+    <ul>
+      <li><strong>Описания и факты</strong> основаны на статьях <a href="https://ru.wikipedia.org/" target="_blank" rel="noopener">Википедии</a> и данных <a href="https://www.wikidata.org/" target="_blank" rel="noopener">Wikidata</a>. У каждого объекта есть ссылка на исходную статью.</li>
+      <li><strong>Фотографии</strong> взяты с <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener">Wikimedia Commons</a>. Автор и лицензия указаны под каждым снимком, ссылка ведёт на страницу файла.</li>
+      <li><strong>Картографическая подложка</strong> — <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© участники OpenStreetMap</a>.</li>
+    </ul>
+
+    <h2>Контакты</h2>
+    <p>
+      Нашли ошибку, знаете памятник, которого нет в каталоге, или хотите помочь проекту — напишите:
+      <a id="contact-email" href="#">включите JavaScript, чтобы увидеть адрес</a>
+    </p>
+  </main>
+
+  <script src="common.js"></script>
+  <script>
+    // Адрес собирается из частей при открытии страницы, чтобы спам-боты не нашли его в коде
+    const email = ["anton.mohlic", "gmail.com"].join("@");
+    const link = document.getElementById("contact-email");
+    link.href = "mailto:" + email;
+    link.textContent = email;
+  </script>
+</body>
+</html>
