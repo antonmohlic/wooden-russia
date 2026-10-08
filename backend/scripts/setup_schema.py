@@ -223,6 +223,30 @@ def main():
         "deleteRule": f'({is_author} && status = "pending") || {IS_ADMIN}',
     })
 
+    # --- Новости: читают все, пишет только админ ---
+    upsert(pb, {
+        "name": "news",
+        "type": "base",
+        "fields": [
+            text("title", required=True, max_length=300),
+            text("body", max_length=20000),
+            {"name": "published_at", "type": "date", "required": True},
+            # Фото: своё (загрузка) или с Wikimedia Commons (ссылка + автор и лицензия)
+            {"name": "photo_file", "type": "file", "maxSelect": 1, "maxSize": 8 * 1024 * 1024,
+             "mimeTypes": ["image/jpeg", "image/png", "image/webp"], "thumbs": ["1200x0"]},
+            text("photo", max_length=1000),
+            text("photo_author", max_length=300),
+            text("photo_license", max_length=100),
+            text("photo_source", max_length=1000),
+            *autodates(),
+        ],
+        "listRule": "",
+        "viewRule": "",
+        "createRule": IS_ADMIN,
+        "updateRule": IS_ADMIN,
+        "deleteRule": IS_ADMIN,
+    })
+
     print("Готово.")
 
 

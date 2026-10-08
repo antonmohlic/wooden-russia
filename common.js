@@ -12,6 +12,7 @@ const MUSEUM_COLOR = "#6b4226";
 
 // Пункты меню. Чтобы добавить раздел, допишите сюда строку.
 const NAV_ITEMS = [
+  { href: "news.html", label: "Новости" },
   { href: "index.html", label: "Карта" },
   { href: "catalog.html", label: "Каталог" },
   { href: "museums.html", label: "Музеи" },
@@ -107,6 +108,21 @@ function objectUrl(obj) {
 
 function mapUrl(obj) {
   return `index.html?id=${encodeURIComponent(obj.id)}`;
+}
+
+// Уменьшает фото до 2000 px по большей стороне и пересохраняет в JPEG.
+// Заодно удаляются метаданные снимка (EXIF), в том числе GPS-координаты телефона.
+async function prepareImage(file) {
+  const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  const scale = Math.min(1, 2000 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
+  const name = file.name.replace(/\.[^.]+$/, "") || "photo";
+  return new File([blob], `${name}.jpg`, { type: "image/jpeg" });
 }
 
 // ---------- Данные ----------

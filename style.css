@@ -358,6 +358,54 @@ a.button {
   background: var(--bg);
 }
 
+/* ---------- Новости ---------- */
+
+.news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 8px;
+}
+
+.news-post {
+  overflow: hidden;
+  padding: 0 0 20px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.news-post > :not(.news-photo) { margin-left: 20px; margin-right: 20px; }
+
+.news-photo {
+  display: block;
+  width: 100%;
+  max-height: 460px;
+  object-fit: cover;
+  background: #ddd;
+}
+
+.news-post > .credit { margin-top: 4px; }
+.news-date { margin: 14px 0 0; color: var(--muted); font-size: 14px; }
+.news-post h2 { margin: 4px 0 10px; font-size: 24px; }
+
+.news-body {
+  white-space: pre-line;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.news-photo-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.news-photo-fields legend { padding: 0 4px; color: var(--muted); font-size: 14px; }
+
 /* ---------- Наблюдения за состоянием ---------- */
 
 .obs-section {
