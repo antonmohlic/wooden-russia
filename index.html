@@ -14,15 +14,22 @@
 </head>
 <body class="page-map">
   <div class="map-layout">
-    <aside class="map-panel" id="map-panel">
-      <h2 class="panel-title">Фильтры</h2>
-      <div class="filters filters--column" id="filters"></div>
-      <p class="results-count" id="count">Загрузка…</p>
-    </aside>
-
     <main id="map"></main>
 
-    <button class="panel-toggle" id="panel-toggle" type="button" aria-controls="map-panel" aria-expanded="false">Фильтры</button>
+    <!-- Кнопка открывает панель фильтров поверх карты -->
+    <button class="filters-toggle" id="panel-toggle" type="button" aria-controls="map-panel" aria-expanded="false">
+      Фильтры <span class="filters-badge" id="filters-badge" hidden></span>
+    </button>
+    <p class="map-count" id="count">Загрузка…</p>
+
+    <aside class="map-panel" id="map-panel" hidden>
+      <div class="panel-header">
+        <h2 class="panel-title">Фильтры</h2>
+        <button class="panel-close" id="panel-close" type="button" aria-label="Скрыть фильтры">✕</button>
+      </div>
+      <div class="filters filters--column" id="filters"></div>
+      <button class="button panel-done" id="panel-done" type="button">Показать на карте</button>
+    </aside>
 
     <div class="legend">
       <div><span class="dot" style="background:#2e7d32"></span>сохранился</div>

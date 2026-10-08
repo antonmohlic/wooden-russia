@@ -593,49 +593,108 @@ a.credit:hover { text-decoration: underline; }
   min-height: 0;
 }
 
-.map-panel {
-  width: 290px;
-  flex-shrink: 0;
-  padding: 16px;
-  overflow-y: auto;
-  background: var(--bg);
-  border-right: 1px solid var(--border);
-}
-
-.panel-title { margin: 0 0 12px; font-size: 18px; }
-
 #map { flex: 1; }
 
-.panel-toggle {
-  display: none;
+/* Кнопка «Фильтры» в левом верхнем углу карты */
+.filters-toggle {
   position: absolute;
   top: 12px;
-  right: 12px;
+  left: 12px;
   z-index: 1100;
-  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow);
+  color: var(--text);
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
 }
 
+.filters-toggle::before { content: "⚙"; color: var(--wood); }
+.filters-toggle:hover { background: var(--bg); }
+
+/* Число включённых фильтров на кнопке */
+.filters-badge {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--wood);
+  color: #fff;
+  font-size: 12px;
+  line-height: 20px;
+  text-align: center;
+}
+
+/* Сколько объектов показано — под кнопкой */
+.map-count {
+  position: absolute;
+  top: 58px;
+  left: 12px;
+  z-index: 1000;
+  margin: 0;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Панель фильтров: целиком, поверх карты */
+.map-panel {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 300px;
+  max-height: calc(100% - 24px);
+  padding: 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--bg);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.map-panel .filters > * { width: 100%; min-width: 0; }
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-title { margin: 0; font-size: 18px; }
+
+.panel-close {
+  padding: 4px 8px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.panel-close:hover { color: var(--text); }
+
+.panel-done:disabled { opacity: 0.5; cursor: default; }
+
+/* На телефоне панель занимает весь экран карты */
 @media (max-width: 760px) {
-  .panel-toggle { display: block; }
-
   .map-panel {
-    display: none;
-    position: absolute;
     inset: 0;
-    z-index: 1050;
     width: auto;
-    border: 0;
+    max-height: none;
+    border-radius: 0;
   }
-
-  .map-panel.open { display: block; }
 }
 
 .legend {

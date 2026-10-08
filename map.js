@@ -3,7 +3,9 @@
 // С какого приближения музей «раскрывается» в отдельные памятники
 const MUSEUM_EXPAND_ZOOM = 13;
 
-const map = L.map("map").setView([63.5, 41], 6);
+// Кнопки масштаба справа, чтобы слева не мешали кнопке и панели фильтров
+const map = L.map("map", { zoomControl: false }).setView([63.5, 41], 6);
+L.control.zoom({ position: "topright" }).addTo(map);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 18,
@@ -68,17 +70,40 @@ function museumIcon(count) {
 function fitTo(objects) {
   if (!objects.length) return;
   const bounds = L.latLngBounds(objects.map((obj) => [obj.lat, obj.lon]));
-  map.fitBounds(bounds, { padding: [40, 40], maxZoom: 11 });
+  // Отступы: сверху — под кнопкой «Фильтры», снизу — под легендой, чтобы метки не прятались за ними
+  map.fitBounds(bounds, { paddingTopLeft: [40, 100], paddingBottomRight: [40, 140], maxZoom: 11 });
 }
 
-// Кнопка «Фильтры» на телефоне
+// ---------- Панель фильтров поверх карты ----------
+// Открывается кнопкой «Фильтры», закрывается кнопкой «Показать на карте», крестиком, Esc или кликом по карте.
 const panel = document.getElementById("map-panel");
 const panelToggle = document.getElementById("panel-toggle");
-panelToggle.addEventListener("click", () => {
-  const open = panel.classList.toggle("open");
+
+function setPanelOpen(open) {
+  panel.hidden = !open;
+  panelToggle.hidden = open;
   panelToggle.setAttribute("aria-expanded", open);
-  panelToggle.textContent = open ? "Показать карту" : "Фильтры";
+  if (open) panel.querySelector("input, select")?.focus();
+  else panelToggle.focus({ preventScroll: true });
+}
+
+panelToggle.addEventListener("click", () => setPanelOpen(true));
+document.getElementById("panel-close").addEventListener("click", () => setPanelOpen(false));
+document.getElementById("panel-done").addEventListener("click", () => setPanelOpen(false));
+map.on("click", () => {
+  if (!panel.hidden) setPanelOpen(false);
 });
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !panel.hidden) setPanelOpen(false);
+});
+
+// Сколько фильтров включено — показываем на закрытой кнопке
+function updateFilterBadge(state) {
+  const active = Object.values(state).filter(Boolean).length;
+  const badge = document.getElementById("filters-badge");
+  badge.textContent = active;
+  badge.hidden = active === 0;
+}
 
 loadObjects()
   .then((objects) => {
@@ -137,7 +162,11 @@ loadObjects()
 
     createFilters(document.getElementById("filters"), objects, (state) => {
       visible = filterObjects(objects, state);
-      document.getElementById("count").textContent = `Показано объектов: ${visible.length} из ${objects.length}`;
+      document.getElementById("count").textContent = `Показано: ${visible.length} из ${objects.length}`;
+      const doneButton = document.getElementById("panel-done");
+      doneButton.textContent = visible.length ? `Показать на карте (${visible.length})` : "Ничего не найдено";
+      doneButton.disabled = visible.length === 0;
+      updateFilterBadge(state);
 
       if (firstRender && focusObj) {
         if (!visible.includes(focusObj)) visible.push(focusObj);
