@@ -3,6 +3,18 @@
 // Серверная логика сайта (хуки PocketBase).
 // Важно: каждый обработчик выполняется изолированно — переменные снаружи функций внутри недоступны.
 
+// Дополнительные заголовки безопасности для всех ответов сервера
+routerUse((e) => {
+  const headers = e.response.header();
+  // Открывать сайт только по HTTPS полгода. Без includeSubDomains: соседние поддомены не наши.
+  if (e.request.tls) headers.set("Strict-Transport-Security", "max-age=15552000");
+  // Чужим сайтам по ссылкам передаём только адрес сайта, без страницы и параметров
+  headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  // Сайту не нужны камера, микрофон и геолокация — запрещаем их заранее
+  headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
+  return e.next();
+});
+
 // После регистрации сразу отправляем письмо со ссылкой для подтверждения почты.
 // Пока почта не подтверждена, участник не может предлагать объекты (правило в таблице submissions).
 onRecordAfterCreateSuccess((e) => {

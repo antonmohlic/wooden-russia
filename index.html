@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Карта объектов — Деревянное зодчество России</title>
+  <title>Карта объектов — Открытый каталог деревянного зодчества</title>
   <meta name="description" content="Карта памятников деревянного зодчества России">
 
-  <!-- Библиотека карт Leaflet -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <!-- Библиотека карт Leaflet 1.9.4 — лежит на нашем сервере, чтобы не зависеть от зарубежных CDN -->
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <script src="vendor/leaflet/leaflet.js"></script>
 
   <link rel="stylesheet" href="style.css">
 </head>
@@ -33,8 +33,8 @@
 
     <div class="legend">
       <div><span class="dot" style="background:#2e7d32"></span>сохранился</div>
-      <div><span class="dot" style="background:#e08a00"></span>аварийный</div>
-      <div><span class="dot" style="background:#8a8a8a"></span>утрачен</div>
+      <div><span class="dot" style="background:#b45f00"></span>аварийный</div>
+      <div><span class="dot" style="background:#6b6b6b"></span>утрачен</div>
       <div><span class="dot dot--museum"></span>музей (цифра — число памятников)</div>
     </div>
   </div>

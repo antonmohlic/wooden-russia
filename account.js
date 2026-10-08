@@ -165,7 +165,7 @@ function render(user) {
 
 const KIND_LABELS = { create: "Новый объект", update: "Правка", delete: "Удаление" };
 const SUBMISSION_STATUS = {
-  pending: { label: "на модерации", color: "#e08a00" },
+  pending: { label: "на модерации", color: "#b45f00" },
   approved: { label: "принята", color: "#2e7d32" },
   rejected: { label: "отклонена", color: "#8a1c12" },
 };

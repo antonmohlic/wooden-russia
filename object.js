@@ -17,7 +17,7 @@ function itemCardHtml(obj) {
 }
 
 function render(obj, objects) {
-  document.title = `${obj.name} — Деревянное зодчество России`;
+  document.title = `${obj.name} — Открытый каталог деревянного зодчества`;
 
   const museum = objects.find((item) => item.id === obj.museum);
   const items = isMuseum(obj) ? objects.filter((item) => item.museum === obj.id) : [];

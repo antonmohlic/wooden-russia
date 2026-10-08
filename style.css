@@ -15,6 +15,16 @@
 /* Скрытые элементы скрыты всегда, даже если у них в стилях задан display */
 [hidden] { display: none !important; }
 
+/* Заметная рамка фокуса при работе с клавиатуры (Tab) */
+:focus-visible {
+  outline: 2px solid var(--wood);
+  outline-offset: 2px;
+}
+
+.site-header :focus-visible {
+  outline-color: #fff;
+}
+
 html, body {
   margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;

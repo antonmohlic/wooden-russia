@@ -1,0 +1,11 @@
+# Поисковики индексируют карту, каталог, музеи и страницы объектов.
+# Служебные страницы (вход, кабинет, заявки, модерация, ссылки из писем) — не нужны в поиске.
+User-agent: *
+Disallow: /login.html
+Disallow: /account.html
+Disallow: /propose.html
+Disallow: /moderate.html
+Disallow: /verify.html
+Disallow: /reset.html
+Disallow: /api/
+Disallow: /_/
