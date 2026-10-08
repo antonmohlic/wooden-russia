@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Вход — Деревянное зодчество России</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page page--narrow">
+    <div class="auth-card">
+      <div class="tabs" role="tablist">
+        <button class="tab active" type="button" role="tab" data-tab="login" aria-selected="true">Вход</button>
+        <button class="tab" type="button" role="tab" data-tab="register" aria-selected="false">Регистрация</button>
+      </div>
+
+      <form class="form" id="login-form" data-panel="login">
+        <label>Почта
+          <input type="email" name="email" autocomplete="email" required>
+        </label>
+        <label>Пароль
+          <input type="password" name="password" autocomplete="current-password" required>
+        </label>
+        <p class="form-error" role="alert" hidden></p>
+        <button class="button" type="submit">Войти</button>
+      </form>
+
+      <form class="form" id="register-form" data-panel="register" hidden>
+        <p class="form-hint">
+          После регистрации вы сможете предлагать новые объекты и исправления.
+          Каждое предложение проверяет модератор.
+        </p>
+        <label>Имя (будет видно модератору)
+          <input type="text" name="name" autocomplete="name" maxlength="255" required>
+        </label>
+        <label>Почта
+          <input type="email" name="email" autocomplete="email" required>
+        </label>
+        <label>Пароль (не короче 8 символов)
+          <input type="password" name="password" autocomplete="new-password" minlength="8" required>
+        </label>
+        <label>Повторите пароль
+          <input type="password" name="passwordConfirm" autocomplete="new-password" minlength="8" required>
+        </label>
+        <p class="form-error" role="alert" hidden></p>
+        <button class="button" type="submit">Зарегистрироваться</button>
+      </form>
+
+      <p class="form-error" id="server-down" hidden>
+        Вход сейчас недоступен: нет связи с сервером. Карта и каталог при этом работают.
+      </p>
+    </div>
+  </main>
+
+  <script src="api.js"></script>
+  <script src="common.js"></script>
+  <script src="login.js"></script>
+</body>
+</html>

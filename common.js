@@ -113,12 +113,15 @@ function mapUrl(obj) {
 
 let objectsPromise = null;
 
-// Загружает data/objects.json один раз на страницу
+// Загружает объекты один раз на страницу: с сервера, а если он недоступен — из data/objects.json
 function loadObjects() {
   if (!objectsPromise) {
-    objectsPromise = fetch("data/objects.json").then((response) => {
-      if (!response.ok) throw new Error(`Не удалось загрузить данные: ${response.status}`);
-      return response.json();
+    objectsPromise = checkServer().then((available) => {
+      if (available) return fetchObjectsFromServer();
+      return fetch("data/objects.json").then((response) => {
+        if (!response.ok) throw new Error(`Не удалось загрузить данные: ${response.status}`);
+        return response.json();
+      });
     });
   }
   return objectsPromise;
@@ -141,8 +144,9 @@ function renderHeader() {
   header.innerHTML = `
     <a class="brand" href="index.html">Деревянное зодчество России</a>
     <button class="menu-toggle" type="button" aria-label="Открыть меню" aria-expanded="false">☰</button>
-    <nav class="site-nav">${links}</nav>`;
+    <nav class="site-nav">${links}<span class="account-link" hidden></span></nav>`;
   document.body.prepend(header);
+  renderAccountLink(header.querySelector(".account-link"), activePage);
 
   // На телефоне меню открывается кнопкой ☰
   const toggle = header.querySelector(".menu-toggle");
@@ -150,6 +154,24 @@ function renderHeader() {
     const open = header.classList.toggle("menu-open");
     toggle.setAttribute("aria-expanded", open);
     toggle.textContent = open ? "✕" : "☰";
+  });
+}
+
+// Кнопка «Войти» или имя пользователя в шапке. Если сервера нет — не показываем.
+function renderAccountLink(slot, activePage) {
+  const draw = () => {
+    const user = currentUser();
+    const page = user ? "account.html" : "login.html";
+    const label = user ? `👤 ${user.name || user.email}` : "Войти";
+    const active = page === activePage ? ' class="active" aria-current="page"' : "";
+    slot.innerHTML = `<a href="${page}"${active}>${escapeHtml(label)}</a>`;
+    slot.hidden = false;
+  };
+  // Сразу показываем сохранённое состояние, затем сверяем его с сервером
+  checkServer().then((available) => {
+    if (!available) return;
+    draw();
+    refreshAuth().then(draw);
   });
 }
 

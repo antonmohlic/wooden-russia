@@ -12,6 +12,9 @@
 
 * { box-sizing: border-box; }
 
+/* Скрытые элементы скрыты всегда, даже если у них в стилях задан display */
+[hidden] { display: none !important; }
+
 html, body {
   margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -107,6 +110,126 @@ h1, h2, h3 { line-height: 1.25; }
 .lead { font-size: 18px; }
 
 .breadcrumbs { margin: 0 0 8px; }
+
+/* ---------- Формы, вход, личный кабинет ---------- */
+
+.page--narrow { max-width: 440px; }
+
+.account-link { display: contents; }
+
+.auth-card,
+.panel {
+  padding: 20px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.panel { margin-bottom: 16px; }
+.panel h2 { margin: 0 0 12px; font-size: 19px; }
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  flex: 1;
+  padding: 10px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.tab.active { color: var(--wood); border-bottom-color: var(--wood); }
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.form input,
+.form select,
+.form textarea {
+  font: inherit;
+  font-size: 15px;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.form input:focus,
+.form select:focus,
+.form textarea:focus {
+  outline: 2px solid var(--wood);
+  outline-offset: -1px;
+}
+
+.form--inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.form--inline label { flex: 1 1 220px; }
+.form--inline .form-error,
+.form--inline .form-success { flex-basis: 100%; }
+
+.button {
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--wood);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button:hover { background: var(--wood-dark); }
+.button:disabled { opacity: 0.6; cursor: wait; }
+
+.button--secondary {
+  background: var(--surface);
+  color: var(--wood);
+  border: 1px solid var(--wood);
+}
+
+.button--secondary:hover { background: var(--bg); }
+
+.form-hint { margin: 0; color: var(--muted); font-size: 14px; }
+
+.form-error {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #fdecea;
+  color: #8a1c12;
+  font-size: 14px;
+}
+
+.form-success {
+  margin: 0;
+  color: #2e7d32;
+  font-size: 14px;
+}
 
 /* ---------- Фильтры ---------- */
 

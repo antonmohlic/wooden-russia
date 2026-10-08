@@ -1,0 +1,11 @@
+# Программа PocketBase — скачивается отдельно, в Git не храним
+backend/pocketbase.exe
+backend/pocketbase
+backend/CHANGELOG.md
+backend/LICENSE.md
+
+# Файлы базы данных и загруженные файлы — это данные, а не код
+backend/pb_data/
+
+# Локальные пароли и ключи — никогда не коммитить
+backend/.env.local
