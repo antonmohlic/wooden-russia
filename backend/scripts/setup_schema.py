@@ -26,6 +26,19 @@ RESET_PASSWORD_TEMPLATE = {
     ),
 }
 
+# Письмо «Подтвердите почту» — уходит сразу после регистрации (см. backend/pb_hooks/main.pb.js)
+VERIFICATION_TEMPLATE = {
+    "subject": "Подтвердите почту — {APP_NAME}",
+    "body": (
+        "<p>Здравствуйте!</p>\n"
+        "<p>Спасибо за регистрацию на сайте «{APP_NAME}». Осталось подтвердить, что это ваша почта:</p>\n"
+        '<p><a class="btn" href="{APP_URL}/verify.html?token={TOKEN}" target="_blank" rel="noopener">Подтвердить почту</a></p>\n'
+        "<p>Ссылка действует сутки. Неподтверждённые аккаунты через сутки удаляются автоматически.</p>\n"
+        "<p><i>Если вы не регистрировались на нашем сайте, просто не обращайте внимания на это письмо — "
+        "аккаунт с вашей почтой будет удалён сам.</i></p>\n"
+    ),
+}
+
 OBJECT_TYPES = ["церковь", "часовня", "колокольня", "изба", "амбар", "мельница", "музей", "другое"]
 STATUSES = ["сохранился", "аварийный", "утрачен"]
 
@@ -91,6 +104,9 @@ def main():
         "resetPasswordTemplate": RESET_PASSWORD_TEMPLATE,
         # Ссылка из письма действует 30 минут
         "passwordResetToken": {"duration": 1800},
+        "verificationTemplate": VERIFICATION_TEMPLATE,
+        # Ссылка подтверждения почты действует сутки — столько же живёт неподтверждённый аккаунт
+        "verificationToken": {"duration": 86400},
     })
 
     # --- Объекты: читать могут все, менять — только админ сайта ---
@@ -152,9 +168,10 @@ def main():
         # Участник видит только свои заявки, админ — все
         "listRule": f'@request.auth.id != "" && ({is_author} || {IS_ADMIN})',
         "viewRule": f'@request.auth.id != "" && ({is_author} || {IS_ADMIN})',
-        # Подать заявку можно только от своего имени и только со статусом «на модерации»
+        # Подать заявку можно только с подтверждённой почтой, от своего имени и со статусом «на модерации»
         "createRule": (
-            '@request.auth.id != "" && @request.body.author = @request.auth.id'
+            '@request.auth.id != "" && @request.auth.verified = true'
+            " && @request.body.author = @request.auth.id"
             ' && @request.body.status = "pending"'
             " && @request.body.admin_comment:isset = false"
             " && @request.body.reviewed_by:isset = false"

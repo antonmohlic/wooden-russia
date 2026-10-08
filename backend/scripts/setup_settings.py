@@ -10,8 +10,29 @@ from pb import PocketBase
 sys.stdout.reconfigure(encoding="utf-8")
 
 
+def smtp_settings(env):
+    """Почтовый сервер из файла окружения. Пароль здесь не задаётся никогда:
+    его вводит владелец почты в панели PocketBase (Settings → Mail settings)."""
+    if "SMTP_HOST" not in env:
+        return {}
+    return {
+        "meta": {"senderAddress": env["SENDER_ADDRESS"]},
+        "smtp": {
+            "enabled": True,
+            "host": env["SMTP_HOST"],
+            "port": int(env["SMTP_PORT"]),
+            "tls": env.get("SMTP_TLS", "false") == "true",
+            "authMethod": "PLAIN",
+            "username": env.get("SMTP_USERNAME", ""),
+        },
+    }
+
+
 def main():
     pb = PocketBase()
+    smtp = smtp_settings(pb.env)
+    if smtp:
+        pb.call("PATCH", "/api/settings", smtp)
     pb.call("PATCH", "/api/settings", {
         "meta": {
             "appName": "Открытый каталог деревянного зодчества России",
@@ -42,6 +63,9 @@ def main():
           f"({len(settings['rateLimits']['rules'])} правила)")
     print("резервные копии:", settings["backups"]["cron"], "| хранить:", settings["backups"]["cronMaxKeep"])
     print("логи хранятся дней:", settings["logs"]["maxDays"])
+    s = settings["smtp"]
+    print("почта:", "включена" if s["enabled"] else "выключена", f"| {s['host']}:{s['port']}",
+          "| TLS" if s["tls"] else "", f"| отправитель: {settings['meta']['senderName']} <{settings['meta']['senderAddress']}>")
 
 
 if __name__ == "__main__":

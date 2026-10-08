@@ -386,8 +386,17 @@ function render(obj, objects) {
     root.innerHTML = `<h1>Предложить объект</h1><p>Сейчас нет связи с сервером. Попробуйте позже.</p>`;
     return;
   }
-  if (!(await refreshAuth())) {
+  const user = await refreshAuth();
+  if (!user) {
     location.replace(`login.html?next=${encodeURIComponent(location.pathname.split("/").pop() + location.search)}`);
+    return;
+  }
+  // Предлагать могут только участники с подтверждённой почтой (это же проверяет сервер)
+  if (!user.verified) {
+    root.innerHTML = `
+      <h1>Сначала подтвердите почту</h1>
+      <p>Предлагать объекты и правки можно после подтверждения почты — так мы защищаемся от спама.</p>
+      <p><a class="button" href="account.html">В личный кабинет</a></p>`;
     return;
   }
   const objects = await loadObjects();

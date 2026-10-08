@@ -80,7 +80,7 @@ function translateError(status, body) {
         if (field === "email" && error.code === "validation_not_unique") return "Эта почта уже зарегистрирована.";
         if (field === "password" && /length|min_text/.test(error.code)) return "Пароль должен быть не короче 8 символов.";
         if (field === "passwordConfirm") return "Пароли не совпадают.";
-        if (field === "token") return "Ссылка для сброса пароля устарела или уже использована. Запросите новую.";
+        if (field === "token") return "Ссылка устарела или уже использована. Запросите новую.";
         return `${FIELD_NAMES[field] || field}: ${FIELD_ERRORS[error.code] || error.message}`;
       })
       .join(" ");
@@ -136,6 +136,15 @@ async function requestPasswordReset(email) {
 
 async function confirmPasswordReset(token, password, passwordConfirm) {
   await api("POST", "/api/collections/users/confirm-password-reset", { token, password, passwordConfirm });
+}
+
+// Подтверждение почты: письмо уходит само при регистрации, повторно — по кнопке в личном кабинете
+async function requestVerification(email) {
+  await api("POST", "/api/collections/users/request-verification", { email });
+}
+
+async function confirmVerification(token) {
+  await api("POST", "/api/collections/users/confirm-verification", { token });
 }
 
 function logout() {

@@ -320,6 +320,13 @@ a.button {
   background: #ddd;
 }
 
+.panel--notice {
+  border: 1px solid #f0d58c;
+  background: #fff8e1;
+}
+
+.panel--notice p { margin: 0 0 8px; }
+
 .panel--danger {
   margin-top: 16px;
   border: 1px solid #f0c4be;

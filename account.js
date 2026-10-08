@@ -11,10 +11,24 @@ function render(user) {
   root.innerHTML = `
     <h1>Личный кабинет</h1>
 
+    ${
+      user.verified
+        ? ""
+        : `<section class="panel panel--notice" id="verify-notice">
+             <h2>Подтвердите почту</h2>
+             <p>Мы отправили письмо со ссылкой на <strong>${escapeHtml(user.email)}</strong>.
+                Пока почта не подтверждена, предлагать объекты нельзя, а через сутки неподтверждённый аккаунт удаляется.</p>
+             <p class="form-hint">Не видите письма? Проверьте папку «Спам» или отправьте его ещё раз.</p>
+             <p><button class="button button--secondary" type="button" id="resend-verification">Отправить письмо ещё раз</button></p>
+             <p class="form-success" hidden>Письмо отправлено.</p>
+             <p class="form-error" role="alert" hidden></p>
+           </section>`
+    }
+
     <section class="panel">
       <h2>Профиль</h2>
       <dl class="facts">
-        <dt>Почта</dt><dd>${escapeHtml(user.email)}</dd>
+        <dt>Почта</dt><dd>${escapeHtml(user.email)} ${user.verified ? "✓ подтверждена" : "— не подтверждена"}</dd>
         <dt>Роль</dt><dd>${user.role === "admin" ? "администратор" : "участник"}</dd>
         <dt>С нами с</dt><dd>${escapeHtml(formatDate(user.created))}</dd>
       </dl>
@@ -45,7 +59,11 @@ function render(user) {
       <p class="form-hint">
         Чтобы предложить исправление, откройте страницу объекта и нажмите «Предложить правку».
       </p>
-      <p><a class="button" href="propose.html">+ Предложить новый объект</a></p>
+      ${
+        user.verified
+          ? `<p><a class="button" href="propose.html">+ Предложить новый объект</a></p>`
+          : `<p class="form-hint">Предлагать объекты можно после подтверждения почты.</p>`
+      }
       <div id="submissions-list"><p class="form-hint">Загрузка…</p></div>
     </section>
 
@@ -109,6 +127,26 @@ function render(user) {
     logout();
     location.href = "index.html";
   });
+
+  // «Отправить письмо ещё раз» для неподтверждённой почты
+  const resend = document.getElementById("resend-verification");
+  if (resend) {
+    const notice = document.getElementById("verify-notice");
+    resend.addEventListener("click", async () => {
+      notice.querySelector(".form-success").hidden = true;
+      notice.querySelector(".form-error").hidden = true;
+      resend.disabled = true;
+      try {
+        await requestVerification(user.email);
+        notice.querySelector(".form-success").hidden = false;
+      } catch (e) {
+        notice.querySelector(".form-error").textContent = e.message;
+        notice.querySelector(".form-error").hidden = false;
+      }
+      // Не даём слать письма слишком часто
+      setTimeout(() => (resend.disabled = false), 60000);
+    });
+  }
 
   if (new URLSearchParams(location.search).get("sent")) {
     document.getElementById("sent-message").hidden = false;

@@ -21,7 +21,7 @@ echo "Выкладываю версию $VERSION на $SSH_TARGET…"
 
 # Архив из Git: сайт (всё, кроме backend/) и миграции
 git archive --format=tar HEAD -- . ':!backend' ':!.gitignore' > /tmp/wr_site.tar
-git archive --format=tar HEAD -- backend/pb_migrations > /tmp/wr_migrations.tar
+git archive --format=tar HEAD -- backend/pb_migrations backend/pb_hooks > /tmp/wr_migrations.tar
 
 { cat /tmp/wr_site.tar; } | "${SSH_CMD[@]}" "set -e
   rm -rf /opt/wooden-russia/pb_public.new && mkdir -p /opt/wooden-russia/pb_public.new
@@ -37,12 +37,23 @@ git archive --format=tar HEAD -- backend/pb_migrations > /tmp/wr_migrations.tar
 
 cat /tmp/wr_migrations.tar | "${SSH_CMD[@]}" "set -e
   cd /tmp && rm -rf wr_mig && mkdir wr_mig && tar -xf - -C wr_mig --no-same-owner
+  mkdir -p /opt/wooden-russia/pb_hooks
+  changed=no
   if ! diff -rq wr_mig/backend/pb_migrations /opt/wooden-russia/pb_migrations >/dev/null; then
     cp wr_mig/backend/pb_migrations/* /opt/wooden-russia/pb_migrations/
+    changed=yes
+  fi
+  if ! diff -rq wr_mig/backend/pb_hooks /opt/wooden-russia/pb_hooks >/dev/null; then
+    rm -f /opt/wooden-russia/pb_hooks/*.pb.js
+    cp wr_mig/backend/pb_hooks/*.pb.js /opt/wooden-russia/pb_hooks/
+    changed=yes
+  fi
+  chmod -R a+rX /opt/wooden-russia/pb_migrations /opt/wooden-russia/pb_hooks
+  if [ \$changed = yes ]; then
     systemctl restart pocketbase
-    echo 'новые миграции применены, сервер перезапущен'
+    echo 'миграции и хуки обновлены, сервер перезапущен'
   else
-    echo 'миграции без изменений'
+    echo 'миграции и хуки без изменений'
   fi
   rm -rf wr_mig"
 
