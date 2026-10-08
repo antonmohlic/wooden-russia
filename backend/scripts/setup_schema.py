@@ -124,6 +124,8 @@ def main():
              "maxSelect": 1, "cascadeDelete": True},
             select("kind", ["create", "update", "delete"], required=True),
             text("target", max_length=100),
+            # Название объекта на момент подачи — чтобы заявку было понятно, даже если объект потом удалят
+            text("target_name", max_length=300),
             {"name": "data", "type": "json", "maxSize": 200000},
             text("comment", max_length=2000),
             select("status", ["pending", "approved", "rejected"], required=True),

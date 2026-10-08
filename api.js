@@ -133,8 +133,16 @@ function logout() {
   storeAuth(null);
 }
 
-// Проверяет, что сохранённая сессия ещё действует, и обновляет данные пользователя (например, роль)
-async function refreshAuth() {
+// Проверяет, что сохранённая сессия ещё действует, и обновляет данные пользователя (например, роль).
+// На странице выполняется один раз, сколько бы мест её ни вызывало.
+let refreshPromise = null;
+
+function refreshAuth() {
+  if (!refreshPromise) refreshPromise = doRefreshAuth();
+  return refreshPromise;
+}
+
+async function doRefreshAuth() {
   if (!currentAuth) return null;
   try {
     const result = await api("POST", "/api/collections/users/auth-refresh");

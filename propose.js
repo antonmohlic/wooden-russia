@@ -256,11 +256,12 @@ function changedFields(original, data) {
   return changes;
 }
 
-async function submit(kind, data, comment) {
+async function submit(kind, data, comment, targetName = "") {
   await api("POST", "/api/collections/submissions/records", {
     author: currentUser().id,
     kind,
     target: editSlug || "",
+    target_name: targetName,
     data,
     comment,
     status: "pending",
@@ -356,7 +357,7 @@ function render(obj, objects) {
     showMessage(error, "");
     button.disabled = true;
     try {
-      await submit(obj.id ? "update" : "create", payload, form.elements.comment.value.trim());
+      await submit(obj.id ? "update" : "create", payload, form.elements.comment.value.trim(), obj.name || "");
     } catch (e) {
       showMessage(error, e.message);
       button.disabled = false;
@@ -372,7 +373,7 @@ function render(obj, objects) {
       const reason = deleteForm.elements.comment.value.trim();
       if (!reason) return showMessage(error, "Напишите причину.");
       try {
-        await submit("delete", { name: obj.name }, reason);
+        await submit("delete", {}, reason, obj.name);
       } catch (e) {
         showMessage(error, e.message);
       }

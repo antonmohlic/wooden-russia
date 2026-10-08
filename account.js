@@ -33,7 +33,8 @@ function render(user) {
       user.role === "admin"
         ? `<section class="panel">
              <h2>Модерация</h2>
-             <p class="form-hint">Очередь предложений от участников появится здесь на следующем этапе.</p>
+             <p class="form-hint">Новых заявок от участников: <strong id="pending-total">…</strong></p>
+             <p><a class="button" href="moderate.html">Открыть очередь модерации</a></p>
            </section>`
         : ""
     }
@@ -114,6 +115,12 @@ function render(user) {
     history.replaceState(null, "", "account.html#submissions");
   }
   loadSubmissions();
+
+  if (user.role === "admin") {
+    api("GET", `/api/collections/submissions/records?filter=${encodeURIComponent('status = "pending"')}&perPage=1&fields=id`)
+      .then((result) => (document.getElementById("pending-total").textContent = result.totalItems))
+      .catch(() => (document.getElementById("pending-total").textContent = "?"));
+  }
 }
 
 // ---------- Мои заявки ----------
@@ -128,7 +135,7 @@ const SUBMISSION_STATUS = {
 function submissionHtml(sub, objectsBySlug) {
   const status = SUBMISSION_STATUS[sub.status] || { label: sub.status, color: "#555" };
   const target = objectsBySlug.get(sub.target);
-  const name = sub.data?.name || target?.name || sub.target || "без названия";
+  const name = sub.data?.name || target?.name || sub.target_name || sub.target || "без названия";
   const changed = sub.kind === "update" ? Object.keys(sub.data || {}).length : 0;
   return `
     <article class="submission">

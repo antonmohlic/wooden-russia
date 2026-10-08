@@ -310,6 +310,41 @@ a.button {
   background: var(--bg);
 }
 
+/* Модерация */
+.moderation-card { margin-top: 16px; }
+
+.diff-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.diff-table th,
+.diff-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.diff-table th { width: 150px; color: var(--muted); font-weight: 600; }
+.diff-before { background: #fdecea; color: #6d1b13; word-break: break-word; }
+.diff-after { background: #e8f5e9; word-break: break-word; }
+.diff-after input,
+.diff-after select,
+.diff-after textarea { width: 100%; }
+.empty-value { color: var(--muted); }
+
+.moderation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 560px) {
+  .diff-table th { width: 90px; }
+}
+
 /* ---------- Фильтры ---------- */
 
 .filters {
