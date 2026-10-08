@@ -1,0 +1,161 @@
+# Открытый каталог деревянного зодчества России
+
+Карта и каталог памятников деревянного зодчества: храмы, часовни, колокольни, избы, музеи под открытым небом. Участники предлагают новые объекты и исправления, администратор их модерирует.
+
+- **Сайт:** https://195-19-219-160.sslip.io (временный адрес до покупки домена)
+- **Код:** https://github.com/antonmohlic/wooden-russia
+
+## Как устроено
+
+```
+Браузер ──HTTPS──▶ сервер (Ubuntu, Рег.облако)
+                    └─ PocketBase — одна программа, которая:
+                         • отдаёт файлы сайта (папка pb_public)
+                         • хранит базу данных (SQLite, папка pb_data)
+                         • ведёт пользователей, вход, письма
+                         • сам получает и продлевает HTTPS-сертификат
+```
+
+**Сайт** — обычные HTML, CSS и JavaScript без сборки и фреймворков. Карта — [Leaflet](https://leafletjs.com/) с подложкой OpenStreetMap. Фото и описания — из Википедии и Wikimedia Commons с указанием авторов.
+
+**Бэкенд** — [PocketBase](https://pocketbase.io/) 0.40. Свой код сервера — только правила доступа, хуки и миграции.
+
+### Файлы сайта
+
+| Файл | Что это |
+|---|---|
+| `index.html`, `map.js` | Карта с фильтрами |
+| `catalog.html`, `catalog.js` | Каталог с поиском, фильтрами и сортировкой |
+| `object.html`, `object.js` | Страница объекта или музея |
+| `museums.html`, `museums.js` | Список музейных комплексов |
+| `about.html` | О сервисе, источники, контакты |
+| `login.html`, `login.js` | Вход, регистрация, «Забыли пароль?» |
+| `account.html`, `account.js` | Личный кабинет: профиль, пароль, свои заявки |
+| `propose.html`, `propose.js` | Предложить объект, правку или удаление |
+| `moderate.html`, `moderate.js` | Модерация заявок (только админ) |
+| `verify.html`, `reset.html` | Страницы по ссылкам из писем |
+| `api.js` | Связь с сервером: запросы, сессия, ошибки по-русски |
+| `common.js` | Шапка, меню, фильтры, общие функции |
+| `wiki.js` | Автозаполнение по ссылке на Википедию |
+| `style.css` | Все стили |
+| `logo.svg`, `favicon.svg` | Знак проекта и иконка вкладки |
+| `data/objects.json` | Резервная копия объектов для работы без сервера |
+
+### Бэкенд (`backend/`)
+
+| Путь | Что это |
+|---|---|
+| `pb_migrations/` | Схема базы. PocketBase применяет миграции сам при запуске |
+| `pb_hooks/main.pb.js` | Письмо подтверждения при регистрации; уборка неподтверждённых аккаунтов |
+| `scripts/setup_schema.py` | Таблицы и правила доступа (источник миграций) |
+| `scripts/setup_settings.py` | Настройки сервера: почта, ограничения запросов, резервные копии |
+| `scripts/import_objects.py` | Загрузить `data/objects.json` в базу |
+| `scripts/export_objects.py` | Выгрузить объекты из базы в `data/objects.json` |
+| `scripts/pb.py` | Общий код скриптов: вход в PocketBase |
+| `deploy.sh` | Выкладка сайта на сервер |
+| `backup.sh` | Скачать свежую копию базы с сервера на этот компьютер |
+
+### Данные
+
+**Таблица `objects`** — объекты каталога. `slug` — адрес страницы (`object.html?id=slug`). Основные поля: `name`, `type` (церковь, часовня, колокольня, изба, амбар, мельница, музей, другое), `status` (сохранился, аварийный, утрачен), `lat`, `lon`, `year` или `century` + `year_text`, `region`, `address`, `description`, `wiki`, фото (`photo`, `photo_author`, `photo_license`, `photo_source`). У памятников в музее — `museum` (slug музея) и `origin` (откуда перевезён). У музеев — `founded`, `website`.
+
+**Таблица `users`** — участники. Поле `role`: пусто или `user` — участник, `admin` — администратор сайта. Роль выдаётся только через администратора базы — сам себе её назначить нельзя.
+
+**Таблица `submissions`** — заявки: `kind` (create, update, delete), `target` (slug объекта), `data` (предложенные поля; в правке — только изменённые), `status` (pending, approved, rejected), `comment`, `admin_comment`.
+
+### Правила доступа
+
+- Объекты читают все, меняет только админ.
+- Заявку подаёт только участник **с подтверждённой почтой**, только от своего имени и только со статусом «на модерации».
+- Участник видит только свои заявки; админ — все.
+- Неподтверждённые аккаунты удаляются через сутки (кроме админов).
+
+Проверено набором из 24 тестов (гость, участник, чужой участник, админ).
+
+## Локальная разработка
+
+Нужны: Git, Python 3, VS Code с расширением Live Server.
+
+1. Скачать [PocketBase 0.40.4](https://github.com/pocketbase/pocketbase/releases/tag/v0.40.4) для Windows, положить `pocketbase.exe` в `backend/`.
+2. Создать `backend/.env.local`:
+   ```
+   PB_URL=http://127.0.0.1:8090
+   PB_SUPERUSER_EMAIL=dev-admin@wooden-russia.localhost
+   PB_SUPERUSER_PASSWORD=<любой длинный пароль>
+   ```
+   и администратора базы:
+   ```bash
+   cd backend && ./pocketbase.exe superuser upsert dev-admin@wooden-russia.localhost <пароль>
+   ```
+3. Запустить PocketBase:
+   ```bash
+   cd backend && ./pocketbase.exe serve --http=127.0.0.1:8090 --hooksDir=pb_hooks
+   ```
+   Миграции применятся сами. Загрузить объекты: `python backend/scripts/import_objects.py`.
+4. Открыть `index.html` через Live Server. Сайт сам найдёт PocketBase на `127.0.0.1:8090`.
+
+Без запущенного PocketBase сайт показывает объекты из `data/objects.json`, а вход прячет.
+
+**Изменить схему базы:** поправить `backend/scripts/setup_schema.py`, запустить его при работающем локальном PocketBase — в `backend/pb_migrations/` появится файл миграции. Закоммитить его, выложить — сервер применит миграцию сам.
+
+## Выкладка на сервер
+
+```bash
+bash backend/deploy.sh
+```
+
+Выкладывает **последнюю закоммиченную** версию: файлы сайта, миграции и хуки. Базу на сервере не трогает. В ссылки на скрипты и стили подставляется номер версии — браузеры сразу берут свежие файлы.
+
+## Сервер
+
+- **Адрес:** 195.19.219.160, Ubuntu 24.04, Рег.облако (бесплатный период 3 месяца от октября 2026).
+- **Вход:** только по SSH-ключу `~/.ssh/wooden_russia_vps`, вход по паролю отключён:
+  ```bash
+  ssh -i ~/.ssh/wooden_russia_vps root@195.19.219.160
+  ```
+- **Папка:** `/opt/wooden-russia/` — `pocketbase`, `pb_data/` (база), `pb_public/` (сайт), `pb_migrations/`, `pb_hooks/`.
+- **Служба:** `systemctl status pocketbase`, журнал — `journalctl -u pocketbase -f`. Работает от пользователя `pocketbase` без прав root.
+- **Панель базы:** https://195-19-219-160.sslip.io/_/ — вход из `backend/.env.production`.
+- **Защита:** файрвол ufw (открыты 22, 80, 443), fail2ban для SSH, автоматические обновления безопасности, ограничение частоты запросов (5 входов в минуту с IP, 10 регистраций и 30 заявок в час).
+- **Почта:** письма уходят с `derevzodchestvo@gmail.com` через пароль приложения Google (вводится только в панели базы → Settings → Mail settings).
+
+### Секреты (не в Git)
+
+| Файл | Что внутри |
+|---|---|
+| `backend/.env.local` | Вход в локальную базу |
+| `backend/.env.production` | Вход в базу на сервере, адрес сервера, настройки почты (без пароля почты) |
+| `~/.ssh/wooden_russia_vps` | Ключ доступа к серверу |
+
+### Резервные копии
+
+- **На сервере:** PocketBase делает копию базы каждый день в 03:30 и хранит 14 последних (`pb_data/backups/`).
+- **На этом компьютере:** `bash backend/backup.sh` — скачивает свежую копию в `backups/` (не в Git).
+
+### Восстановление сервера с нуля
+
+1. Новый сервер Ubuntu 24.04, добавить публичный ключ `~/.ssh/wooden_russia_vps.pub` в `/root/.ssh/authorized_keys`.
+2. Базовая защита: `apt install ufw fail2ban unattended-upgrades sqlite3 unzip`, ufw с портами 22/80/443, `PasswordAuthentication no` в `/etc/ssh/sshd_config.d/00-hardening.conf`, файл подкачки 1 ГБ.
+3. Скачать PocketBase 0.40.4 linux_amd64 в `/opt/wooden-russia/`, сверить контрольную сумму с `checksums.txt` релиза, создать системного пользователя `pocketbase`.
+4. Распаковать последнюю копию базы из `backups/` в `/opt/wooden-russia/pb_data/` (владелец `pocketbase`).
+5. Создать службу `/etc/systemd/system/pocketbase.service` — `ExecStart` с адресом сайта, `--dir`, `--publicDir`, `--migrationsDir`, `--hooksDir`, `--automigrate=false`; `AmbientCapabilities=CAP_NET_BIND_SERVICE`; `User=pocketbase`. Включить: `systemctl enable --now pocketbase`.
+6. Поправить `SSH=` и `PB_URL=` в `backend/.env.production`, выполнить `bash backend/deploy.sh` и `PB_ENV=.env.production python backend/scripts/setup_settings.py`.
+
+### Переезд на свой домен
+
+1. В DNS домена: запись `A` → `195.19.219.160`.
+2. На сервере в `/etc/systemd/system/pocketbase.service` заменить `195-19-219-160.sslip.io` на домен, `systemctl daemon-reload && systemctl restart pocketbase` — сертификат выпустится сам.
+3. В `backend/.env.production` поменять `PB_URL`, запустить `setup_settings.py` (обновит адрес в ссылках из писем).
+
+## Частые задачи
+
+| Задача | Как |
+|---|---|
+| Выдать роль админа | Панель базы → users → запись → `role` = `admin` |
+| Сбросить пароль пользователю | Он сам: «Забыли пароль?». Вручную: панель базы → users → запись → новый пароль |
+| Проверить правила доступа | Запустить набор тестов прав (24 проверки) против локальной базы |
+| Обновить резервную копию объектов в Git | `python backend/scripts/export_objects.py`, закоммитить `data/objects.json` |
+
+## Источники и лицензии
+
+Описания основаны на статьях Википедии и данных Wikidata (CC BY-SA, CC0); у каждого объекта — ссылка на статью. Фото — Wikimedia Commons, автор и лицензия указаны под каждым снимком. Карта — © участники OpenStreetMap (ODbL).

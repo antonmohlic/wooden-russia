@@ -85,7 +85,6 @@
     "photo_license": "Общественное достояние",
     "photo_source": "https://commons.wikimedia.org/wiki/File:Church_in_Chukcherma.JPG"
   },
-
   {
     "id": "kizhi",
     "name": "Музей-заповедник «Кижи»",
@@ -148,8 +147,8 @@
     "address": "Республика Карелия, Медвежьегорский р-н, о. Кижи, сектор «Русские Заонежья»",
     "lat": 62.06602,
     "lon": 35.225548,
-    "century": 15,
     "year_text": "XIV–XVI вв.",
+    "century": 15,
     "status": "сохранился",
     "type": "церковь",
     "description": "Один из древнейших сохранившихся деревянных храмов России: маленькая клетская церковь высотой около 7 м из трёх срубов. По преданию, её построил в XIV веке основатель Муромского монастыря преподобный Лазарь Муромский. Исследователи датируют храм XIV–XVI веками, музей указывает XV век. В 1959 году церковь разобрали и перевезли на Кижи.",
@@ -159,7 +158,6 @@
     "photo_license": "Free Art License",
     "photo_source": "https://commons.wikimedia.org/wiki/File:Kizhi_06-2017_img11_Lazarus_Resurrection_Church.jpg"
   },
-
   {
     "id": "malye-korely",
     "name": "Музей-заповедник «Малые Корелы»",
@@ -215,7 +213,6 @@
     "photo_license": "CC BY-SA 3.0",
     "photo_source": "https://commons.wikimedia.org/wiki/File:Малые_Корелы._Георгиевская_ц._из_с._Вершина..jpg"
   },
-
   {
     "id": "vitoslavlitsy",
     "name": "Музей «Витославлицы»",
@@ -252,7 +249,6 @@
     "photo_license": "CC BY-SA 3.0",
     "photo_source": "https://commons.wikimedia.org/wiki/File:VNovgorod_Vitoslavlitsy_No30_VN199.jpg"
   },
-
   {
     "id": "khokhlovka",
     "name": "Архитектурно-этнографический музей «Хохловка»",
