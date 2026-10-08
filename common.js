@@ -129,7 +129,34 @@ function loadObjects() {
 
 // ---------- Шапка и меню ----------
 
+// Знак проекта — шатровая церковь (тот же рисунок, что в logo.svg).
+// Встроен прямо в страницу, чтобы цвет брался из текста шапки (currentColor).
+const LOGO_SVG = `
+  <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true" fill="currentColor">
+    <rect x="31" y="2" width="2" height="9"/><rect x="28.5" y="4.5" width="7" height="1.8"/>
+    <path d="M32 9.5c-3 2.2-4.2 4.2-4.2 6.1 0 2 1.9 3.3 4.2 3.3s4.2-1.3 4.2-3.3c0-1.9-1.2-3.9-4.2-6.1z"/>
+    <rect x="30.4" y="18.6" width="3.2" height="3"/><path d="M32 20.5 22.5 43h19z"/><path d="M19.5 43h25l-2 3.2h-21z"/>
+    <rect x="22" y="46.8" width="20" height="2.6" rx="1.3"/><rect x="22" y="50.2" width="20" height="2.6" rx="1.3"/>
+    <rect x="22" y="53.6" width="20" height="2.6" rx="1.3"/><rect x="22" y="57" width="20" height="2.6" rx="1.3"/>
+    <path d="M10 50.5 16 46l6 4.5z"/><rect x="11" y="51.2" width="10" height="2.4" rx="1.2"/>
+    <rect x="11" y="54.3" width="10" height="2.4" rx="1.2"/><rect x="11" y="57.4" width="10" height="2.4" rx="1.2"/>
+    <path d="M42 50.5 48 46l6 4.5z"/><rect x="43" y="51.2" width="10" height="2.4" rx="1.2"/>
+    <rect x="43" y="54.3" width="10" height="2.4" rx="1.2"/><rect x="43" y="57.4" width="10" height="2.4" rx="1.2"/>
+    <rect x="6" y="60.6" width="52" height="1.6" rx="0.8"/>
+  </svg>`;
+
+// Иконка вкладки браузера — подключаем на всех страницах
+function addFavicon() {
+  if (document.querySelector('link[rel="icon"]')) return;
+  const link = document.createElement("link");
+  link.rel = "icon";
+  link.type = "image/svg+xml";
+  link.href = "favicon.svg";
+  document.head.append(link);
+}
+
 function renderHeader() {
+  addFavicon();
   const currentPage = location.pathname.split("/").pop() || "index.html";
   // Страница объекта относится к разделу «Каталог»
   const activePage = currentPage === "object.html" ? "catalog.html" : currentPage;
@@ -142,7 +169,13 @@ function renderHeader() {
   const header = document.createElement("header");
   header.className = "site-header";
   header.innerHTML = `
-    <a class="brand" href="index.html">Деревянное зодчество России</a>
+    <a class="brand" href="index.html" aria-label="Открытый каталог деревянного зодчества России — на главную">
+      ${LOGO_SVG}
+      <span class="brand-text">
+        <span class="brand-title">Открытый каталог</span>
+        <span class="brand-subtitle">деревянного зодчества России</span>
+      </span>
+    </a>
     <button class="menu-toggle" type="button" aria-label="Открыть меню" aria-expanded="false">☰</button>
     <nav class="site-nav">${links}<span class="account-link" hidden></span></nav>`;
   document.body.prepend(header);
