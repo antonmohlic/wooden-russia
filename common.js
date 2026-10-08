@@ -167,10 +167,7 @@ function renderHeader() {
   header.innerHTML = `
     <a class="brand" href="index.html" aria-label="Открытый каталог деревянного зодчества России — на главную">
       <span class="brand-logo"></span>
-      <span class="brand-text">
-        <span class="brand-title">Открытый каталог</span>
-        <span class="brand-subtitle">деревянного зодчества России</span>
-      </span>
+      <span class="brand-text">Открытый каталог деревянного зодчества России</span>
     </a>
     <button class="menu-toggle" type="button" aria-label="Открыть меню" aria-expanded="false">☰</button>
     <nav class="site-nav">${links}<span class="account-link" hidden></span></nav>`;
