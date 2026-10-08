@@ -12,6 +12,20 @@ routerUse((e) => {
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   // Сайту не нужны камера, микрофон и геолокация — запрещаем их заранее
   headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
+
+  // Кэширование файлов сайта (запросы к API не трогаем):
+  // HTML и данные браузер перепроверяет при каждом открытии — обновления видны сразу;
+  // скрипты и стили с номером версии (?v=…) не меняются никогда — их можно хранить год.
+  const path = e.request.url.path;
+  if (!path.startsWith("/api/") && !path.startsWith("/_/")) {
+    if (e.request.url.query().get("v")) {
+      headers.set("Cache-Control", "public, max-age=31536000, immutable");
+    } else if (path.startsWith("/vendor/")) {
+      headers.set("Cache-Control", "public, max-age=2592000");
+    } else {
+      headers.set("Cache-Control", "no-cache");
+    }
+  }
   return e.next();
 });
 
