@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Сайт переехал — Открытый каталог деревянного зодчества</title>
+  <meta name="robots" content="noindex">
+  <script>
+    // Переадресация на новый адрес с сохранением страницы и параметров:
+    // /wooden-russia/object.html?id=kizhi → https://новый-адрес/object.html?id=kizhi
+    (function () {
+      var NEW_SITE = "https://195-19-219-160.sslip.io";
+      var path = location.pathname.replace(/^\/wooden-russia/, "") || "/";
+      location.replace(NEW_SITE + path + location.search + location.hash);
+    })();
+  </script>
+  <meta http-equiv="refresh" content="0; url=https://195-19-219-160.sslip.io/">
+  <link rel="canonical" href="https://195-19-219-160.sslip.io/">
+</head>
+<body style="font-family: system-ui, sans-serif; padding: 24px">
+  <p>Сайт переехал на новый адрес: <a href="https://195-19-219-160.sslip.io/">https://195-19-219-160.sslip.io</a></p>
+</body>
+</html>
