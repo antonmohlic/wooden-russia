@@ -80,6 +80,7 @@ function translateError(status, body) {
         if (field === "email" && error.code === "validation_not_unique") return "Эта почта уже зарегистрирована.";
         if (field === "password" && /length|min_text/.test(error.code)) return "Пароль должен быть не короче 8 символов.";
         if (field === "passwordConfirm") return "Пароли не совпадают.";
+        if (field === "token") return "Ссылка для сброса пароля устарела или уже использована. Запросите новую.";
         return `${FIELD_NAMES[field] || field}: ${FIELD_ERRORS[error.code] || error.message}`;
       })
       .join(" ");
@@ -126,6 +127,15 @@ async function login(email, password) {
 async function register(name, email, password, passwordConfirm) {
   await api("POST", "/api/collections/users/records", { name, email, password, passwordConfirm });
   return login(email, password);
+}
+
+// Восстановление пароля: письмо со ссылкой на reset.html?token=…
+async function requestPasswordReset(email) {
+  await api("POST", "/api/collections/users/request-password-reset", { email });
+}
+
+async function confirmPasswordReset(token, password, passwordConfirm) {
+  await api("POST", "/api/collections/users/confirm-password-reset", { token, password, passwordConfirm });
 }
 
 function logout() {

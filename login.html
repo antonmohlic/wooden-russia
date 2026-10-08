@@ -24,6 +24,23 @@
         </label>
         <p class="form-error" role="alert" hidden></p>
         <button class="button" type="submit">Войти</button>
+        <button class="link-button" type="button" data-show="forgot">Забыли пароль?</button>
+      </form>
+
+      <form class="form" id="forgot-form" data-panel="forgot" hidden>
+        <h2 class="form-heading">Восстановление пароля</h2>
+        <p class="form-hint">Укажите почту, с которой регистрировались, — пришлём ссылку для смены пароля.</p>
+        <label>Почта
+          <input type="email" name="email" autocomplete="email" required>
+        </label>
+        <p class="form-error" role="alert" hidden></p>
+        <p class="form-success" hidden>
+          Если такая почта зарегистрирована, на неё отправлено письмо со ссылкой. Ссылка действует 30 минут.
+          Не пришло письмо за 10 минут — проверьте «Спам» или напишите нам:
+          <a class="contact-email" href="#">адрес на странице «О сервисе»</a>.
+        </p>
+        <button class="button" type="submit">Отправить ссылку</button>
+        <button class="link-button" type="button" data-show="login">← Вернуться ко входу</button>
       </form>
 
       <form class="form" id="register-form" data-panel="register" hidden>

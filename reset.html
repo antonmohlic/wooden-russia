@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Новый пароль — Деревянное зодчество России</title>
+  <meta name="robots" content="noindex">
+  <!-- Ссылка содержит одноразовый ключ — не передаём её другим сайтам -->
+  <meta name="referrer" content="no-referrer">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page page--narrow">
+    <div class="auth-card">
+      <form class="form" id="reset-form">
+        <h2 class="form-heading">Новый пароль</h2>
+        <label>Новый пароль (не короче 8 символов)
+          <input type="password" name="password" autocomplete="new-password" minlength="8" required>
+        </label>
+        <label>Повторите пароль
+          <input type="password" name="passwordConfirm" autocomplete="new-password" minlength="8" required>
+        </label>
+        <p class="form-error" role="alert" hidden></p>
+        <button class="button" type="submit">Сохранить пароль</button>
+      </form>
+
+      <div id="reset-done" hidden>
+        <h2 class="form-heading">Пароль изменён</h2>
+        <p>Теперь войдите с новым паролем.</p>
+        <p><a class="button" href="login.html">Войти</a></p>
+      </div>
+
+      <div id="reset-invalid" hidden>
+        <h2 class="form-heading">Ссылка не работает</h2>
+        <p>Ссылка неполная или устарела. <a href="login.html#forgot">Запросите новую</a>.</p>
+      </div>
+    </div>
+  </main>
+
+  <script src="api.js"></script>
+  <script src="common.js"></script>
+  <script src="reset.js"></script>
+</body>
+</html>

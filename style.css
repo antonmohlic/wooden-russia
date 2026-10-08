@@ -251,6 +251,8 @@ h1, h2, h3 { line-height: 1.25; }
 
 .form-hint { margin: 0; color: var(--muted); font-size: 14px; }
 
+.form-heading { margin: 0; font-size: 20px; }
+
 .form-error {
   margin: 0;
   padding: 8px 12px;

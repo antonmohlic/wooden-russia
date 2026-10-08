@@ -35,18 +35,11 @@
     <h2>Контакты</h2>
     <p>
       Нашли ошибку, знаете памятник, которого нет в каталоге, или хотите помочь проекту — напишите:
-      <a id="contact-email" href="#">включите JavaScript, чтобы увидеть адрес</a>
+      <a class="contact-email" href="#">включите JavaScript, чтобы увидеть адрес</a>
     </p>
   </main>
 
   <script src="api.js"></script>
   <script src="common.js"></script>
-  <script>
-    // Адрес собирается из частей при открытии страницы, чтобы спам-боты не нашли его в коде
-    const email = ["anton.mohlic", "gmail.com"].join("@");
-    const link = document.getElementById("contact-email");
-    link.href = "mailto:" + email;
-    link.textContent = email;
-  </script>
 </body>
 </html>

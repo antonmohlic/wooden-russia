@@ -293,4 +293,15 @@ function filterObjects(objects, state) {
   });
 }
 
+// Адрес для связи собирается из частей при открытии страницы, чтобы спам-боты не нашли его в коде.
+// Подставляется во все ссылки с классом contact-email.
+function fillContactLinks() {
+  const email = ["anton.mohlic", "gmail.com"].join("@");
+  document.querySelectorAll(".contact-email").forEach((link) => {
+    link.href = `mailto:${email}`;
+    link.textContent = email;
+  });
+}
+
 renderHeader();
+fillContactLinks();

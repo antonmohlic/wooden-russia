@@ -14,6 +14,18 @@ sys.stdout.reconfigure(encoding="utf-8")
 # Кто считается админом сайта (не путать с администратором базы PocketBase)
 IS_ADMIN = '@request.auth.role = "admin"'
 
+# Письмо «Сброс пароля». {APP_URL}, {APP_NAME}, {TOKEN} подставляет PocketBase.
+RESET_PASSWORD_TEMPLATE = {
+    "subject": "Смена пароля — {APP_NAME}",
+    "body": (
+        "<p>Здравствуйте!</p>\n"
+        "<p>Кто-то (надеемся, вы) попросил сменить пароль на сайте «{APP_NAME}».</p>\n"
+        '<p><a class="btn" href="{APP_URL}/reset.html?token={TOKEN}" target="_blank" rel="noopener">Задать новый пароль</a></p>\n'
+        "<p>Ссылка действует 30 минут и сработает один раз.</p>\n"
+        "<p><i>Если вы не просили сменить пароль, просто не обращайте внимания на это письмо — пароль останется прежним.</i></p>\n"
+    ),
+}
+
 OBJECT_TYPES = ["церковь", "часовня", "колокольня", "изба", "амбар", "мельница", "музей", "другое"]
 STATUSES = ["сохранился", "аварийный", "утрачен"]
 
@@ -76,6 +88,9 @@ def main():
         "createRule": "@request.body.role:isset = false",
         "updateRule": "id = @request.auth.id && @request.body.role:isset = false",
         "deleteRule": "id = @request.auth.id",
+        "resetPasswordTemplate": RESET_PASSWORD_TEMPLATE,
+        # Ссылка из письма действует 30 минут
+        "passwordResetToken": {"duration": 1800},
     })
 
     # --- Объекты: читать могут все, менять — только админ сайта ---
