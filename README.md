@@ -2,7 +2,7 @@
 
 Карта и каталог памятников деревянного зодчества: храмы, часовни, колокольни, избы, музеи под открытым небом. Участники предлагают новые объекты и исправления, администратор их модерирует.
 
-- **Сайт:** https://195-19-219-160.sslip.io (временный адрес до покупки домена)
+- **Сайт:** https://lemekh.ru (старый временный адрес `195-19-219-160.sslip.io` и `www.lemekh.ru` переадресуют сюда — хук в `backend/pb_hooks/main.pb.js`)
 - **Код:** https://github.com/antonmohlic/wooden-russia
 - **Старый адрес** `antonmohlic.github.io/wooden-russia` переадресует на сайт с сохранением страницы (ветка `gh-pages`). При смене адреса сайта поправить `NEW_SITE` в `index.html` и `404.html` этой ветки.
 
@@ -126,7 +126,7 @@ bash backend/deploy.sh
   ```
 - **Папка:** `/opt/wooden-russia/` — `pocketbase`, `pb_data/` (база), `pb_public/` (сайт), `pb_migrations/`, `pb_hooks/`.
 - **Служба:** `systemctl status pocketbase`, журнал — `journalctl -u pocketbase -f`. Работает от пользователя `pocketbase` без прав root.
-- **Панель базы:** https://195-19-219-160.sslip.io/_/ — вход из `backend/.env.production`.
+- **Панель базы:** https://lemekh.ru/_/ — вход из `backend/.env.production`.
 - **Защита:** файрвол ufw (открыты 22, 80, 443), fail2ban для SSH, автоматические обновления безопасности, ограничение частоты запросов (5 входов в минуту с IP, 10 регистраций и 30 заявок в час).
 - **Почта:** письма уходят с `derevzodchestvo@gmail.com` через пароль приложения Google (вводится только в панели базы → Settings → Mail settings).
 
@@ -154,14 +154,16 @@ bash backend/deploy.sh
 2. Базовая защита: `apt install ufw fail2ban unattended-upgrades sqlite3 unzip`, ufw с портами 22/80/443, `PasswordAuthentication no` в `/etc/ssh/sshd_config.d/00-hardening.conf`, файл подкачки 1 ГБ.
 3. Скачать PocketBase 0.40.4 linux_amd64 в `/opt/wooden-russia/`, сверить контрольную сумму с `checksums.txt` релиза, создать системного пользователя `pocketbase`.
 4. Распаковать последнюю копию базы из `backups/` в `/opt/wooden-russia/pb_data/` (владелец `pocketbase`).
-5. Создать службу `/etc/systemd/system/pocketbase.service` — `ExecStart` с адресом сайта, `--dir`, `--publicDir`, `--migrationsDir`, `--hooksDir`, `--automigrate=false`; `AmbientCapabilities=CAP_NET_BIND_SERVICE`; `User=pocketbase`. Включить: `systemctl enable --now pocketbase`.
+5. Создать службу `/etc/systemd/system/pocketbase.service` — `ExecStart` с адресами сайта (см. «Домен»), `--dir`, `--publicDir`, `--migrationsDir`, `--hooksDir`, `--automigrate=false`; `AmbientCapabilities=CAP_NET_BIND_SERVICE`; `User=pocketbase`. Включить: `systemctl enable --now pocketbase`.
 6. Поправить `SSH=` и `PB_URL=` в `backend/.env.production`, выполнить `bash backend/deploy.sh` и `PB_ENV=.env.production python backend/scripts/setup_settings.py`.
 
-### Переезд на свой домен
+### Домен
 
-1. В DNS домена: запись `A` → `195.19.219.160`.
-2. На сервере в `/etc/systemd/system/pocketbase.service` заменить `195-19-219-160.sslip.io` на домен, `systemctl daemon-reload && systemctl restart pocketbase` — сертификат выпустится сам.
-3. В `backend/.env.production` поменять `PB_URL`, запустить `setup_settings.py` (обновит адрес в ссылках из писем).
+`lemekh.ru` зарегистрирован в Рег.ру (9 октября 2026, продлевать до 9 октября 2027). DNS там же: записи `A` для `lemekh.ru` и `www.lemekh.ru` → `195.19.219.160`.
+
+Служба запускается как `pocketbase serve lemekh.ru www.lemekh.ru 195-19-219-160.sslip.io …` — сертификаты на все три адреса PocketBase получает и продлевает сам, а хук переадресует `www` и старый адрес на `lemekh.ru`.
+
+Смена домена: DNS → адреса в `ExecStart` службы (`systemctl daemon-reload && systemctl restart pocketbase`) → адрес в хуке переадресации → `PB_URL` в `backend/.env.production` и `setup_settings.py` (адрес в ссылках из писем) → `SITE_URL` в `.github/workflows/uptime.yml` → `NEW_SITE` в ветке `gh-pages`.
 
 ## Частые задачи
 
