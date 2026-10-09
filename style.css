@@ -92,7 +92,6 @@ h1, h2, h3 { line-height: 1.25; }
   border-radius: 6px;
   color: #fff;
   text-decoration: none;
-  white-space: nowrap;
   opacity: 0.85;
 }
 
@@ -109,8 +108,9 @@ h1, h2, h3 { line-height: 1.25; }
   cursor: pointer;
 }
 
-/* Меню прячется под кнопку ☰, когда пункты не помещаются в одну строку с названием */
-@media (max-width: 1180px) {
+@media (max-width: 760px) {
+  .brand-logo { width: 54px; height: 36px; }
+  .brand-text { font-size: 15px; }
   .menu-toggle { display: block; }
 
   .site-nav {
@@ -127,11 +127,6 @@ h1, h2, h3 { line-height: 1.25; }
 
   .site-header.menu-open .site-nav { display: flex; }
   .site-nav a { padding: 12px; }
-}
-
-@media (max-width: 760px) {
-  .brand-logo { width: 54px; height: 36px; }
-  .brand-text { font-size: 15px; }
 }
 
 /* ---------- Обычные страницы ---------- */
@@ -424,7 +419,6 @@ a.button {
 }
 
 .obs-section h2 { margin: 0; }
-.obs-object { margin: 12px 0 -8px; font-weight: 600; }
 .obs-latest { margin: 0; font-size: 15px; }
 .obs-section > .button { align-self: flex-start; }
 

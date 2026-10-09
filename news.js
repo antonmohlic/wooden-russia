@@ -98,7 +98,7 @@ function showForm(post) {
   adminBox.innerHTML = post ? postFormHtml(post) : `
     <div class="news-admin-actions">
       <button class="button" type="button" id="news-new">+ Новая запись</button>
-      <button class="button button--secondary" type="button" id="news-digest" title="Подборка «Под угрозой» за прошлый месяц сохранится черновиком">Собрать выпуск «Под угрозой»</button>
+      <button class="button button--secondary" type="button" id="news-digest" title="Отчёт «Под угрозой» за прошлый месяц сохранится черновиком">Собрать отчёт «Под угрозой»</button>
     </div>
     <p class="form-hint" id="news-digest-result" hidden></p>`;
 
@@ -170,7 +170,7 @@ function setupForm(post) {
   });
 }
 
-// Подборка «Под угрозой» за прошлый месяц. Сама приходит 1-го числа; кнопка — чтобы собрать сразу.
+// Отчёт «Под угрозой» за прошлый месяц. Сам приходит 1-го числа; кнопка — чтобы собрать сразу.
 async function collectDigest() {
   const button = document.getElementById("news-digest");
   const result = document.getElementById("news-digest-result");
@@ -178,8 +178,8 @@ async function collectDigest() {
   try {
     const answer = await api("POST", "/api/threats/digest", {});
     result.textContent = answer.id && !answer.skipped
-      ? "Черновик выпуска готов — он первым в ленте. Проверьте текст и нажмите «Опубликовать»."
-      : `Выпуск не создан: ${answer.skipped}.`;
+      ? "Черновик отчёта готов — он первым в ленте. Проверьте текст и нажмите «Опубликовать»."
+      : `Отчёт не создан: ${answer.skipped}.`;
     await loadPosts(true);
   } catch (e) {
     result.textContent = e.message;

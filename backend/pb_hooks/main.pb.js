@@ -158,7 +158,7 @@ routerAdd("GET", "/object.html", (e) => {
 // Карта сайта для Яндекса и Google: разделы и страницы всех объектов с датой последнего изменения
 routerAdd("GET", "/sitemap.xml", (e) => {
   const siteUrl = ($app.settings().meta.appURL || "").replace(/\/+$/, "");
-  const pages = ["index.html", "catalog.html", "museums.html", "threats.html", "news.html", "about.html"];
+  const pages = ["index.html", "catalog.html", "museums.html", "news.html", "about.html"];
   const entries = pages.map((page) => `  <url><loc>${siteUrl}/${page}</loc></url>`);
   const records = $app.findRecordsByFilter("objects", "", "slug", 0, 0);
   for (const record of records) {

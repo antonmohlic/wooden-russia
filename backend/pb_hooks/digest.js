@@ -1,4 +1,5 @@
-// Ежемесячная подборка «Под угрозой» для ленты новостей.
+// Ежемесячный отчёт «Под угрозой» — пост в ленте новостей.
+// Под угрозой — объекты со статусом «аварийный» и объекты, чьё последнее наблюдение за 3 года тревожное.
 // Подключается из main.pb.js через require: ежемесячное задание и кнопка «Собрать выпуск» у админа.
 // Выпуск сохраняется черновиком — админ проверяет текст и публикует его на странице «Новости».
 
@@ -34,28 +35,32 @@ function excerpt(text, max) {
   return clean.length > max ? clean.slice(0, max - 1).replace(/\s+\S*$/, "") + "…" : clean;
 }
 
-// Сколько объектов сейчас под угрозой: аварийные плюс те, чьё последнее свежее наблюдение тревожное
-function countUnderThreat(app) {
-  const ids = {};
-  app.findRecordsByFilter("objects", 'status = "аварийный"', "", 0, 0).forEach((r) => (ids[r.id] = true));
+// Все объекты, которые сейчас под угрозой, с причиной: [{ object, reason }]. Сначала самые тяжёлые случаи.
+function listUnderThreat(app) {
   const since = new Date();
   since.setUTCFullYear(since.getUTCFullYear() - OBSERVATION_YEARS);
-  const seen = {};
-  const observations = app.findRecordsByFilter(
-    "observations",
-    'status = "approved" && visited_on >= {:since}',
-    "-visited_on,-created",
-    0,
-    0,
-    { since: dbDate(since) },
-  );
-  for (const obs of observations) {
-    const objectId = obs.getString("object");
-    if (seen[objectId]) continue;
-    seen[objectId] = true;
-    if (ALARM_CONDITIONS.includes(obs.getString("condition"))) ids[objectId] = true;
-  }
-  return Object.keys(ids).length;
+  // Последнее свежее наблюдение у каждого объекта
+  const latest = {};
+  app
+    .findRecordsByFilter("observations", 'status = "approved" && visited_on >= {:since}', "-visited_on,-created", 0, 0, {
+      since: dbDate(since),
+    })
+    .forEach((obs) => {
+      if (!latest[obs.getString("object")]) latest[obs.getString("object")] = obs;
+    });
+
+  const result = [];
+  app.findRecordsByFilter("objects", 'status != "утрачен"', "name", 0, 0).forEach((object) => {
+    const obs = latest[object.id];
+    const alarm = obs && ALARM_CONDITIONS.includes(obs.getString("condition")) ? obs : null;
+    if (object.getString("status") !== "аварийный" && !alarm) return;
+    const reasons = [];
+    if (object.getString("status") === "аварийный") reasons.push("статус «аварийный»");
+    if (alarm) reasons.push(`по наблюдению ${dayLabel(alarm.getString("visited_on"))} — ${alarm.getString("condition")}`);
+    const grave = object.getString("status") === "аварийный" || (alarm && alarm.getString("condition") !== "плохое");
+    result.push({ object: object, reason: reasons.join(", "), grave: grave });
+  });
+  return result.sort((a, b) => Number(b.grave) - Number(a.grave));
 }
 
 // Собирает выпуск за месяц (month — 0…11). Возвращает null, если за месяц ничего нового.
@@ -83,7 +88,7 @@ function buildDigest(app, year, month) {
   if (!changed.length && !observations.length) return null;
 
   const lines = [
-    `Ежемесячная подборка памятников, которым нужна помощь: что изменилось за ${MONTHS[month]} ${year} года.`,
+    `Ежемесячный отчёт о памятниках, которым нужна помощь: что изменилось за ${MONTHS[month]} ${year} года и кто сейчас под угрозой.`,
   ];
   let photoObject = null;
 
@@ -121,13 +126,21 @@ function buildDigest(app, year, month) {
     if (items.length) lines.push("Тревожные наблюдения посетителей:\n" + items.join("\n"));
   }
 
+  const threatened = listUnderThreat(app);
+  if (threatened.length) {
+    lines.push(
+      `Сейчас под угрозой — ${threatened.length}:\n` +
+        threatened
+          .map(({ object, reason }) => `— ${link(object)}${object.getString("region") ? `, ${object.getString("region")}` : ""}: ${reason}`)
+          .join("\n"),
+    );
+  }
   lines.push(
-    `Всего под угрозой на сайте сейчас: ${countUnderThreat(app)}. Полный список — на странице [«Под угрозой»](threats.html).`,
-    "Были у этих памятников недавно? Расскажите на их странице, в каком они состоянии, — это помогает вовремя заметить угрозу.",
+    "Были у этих памятников недавно? Расскажите на их странице, в каком они состоянии, — свежие наблюдения помогают вовремя заметить угрозу.",
   );
 
   return {
-    title: `Под угрозой: ${MONTHS[month]} ${year}`,
+    title: `Под угрозой: отчёт за ${MONTHS[month]} ${year}`,
     body: lines.join("\n\n"),
     photo: photoObject,
   };
@@ -139,7 +152,7 @@ function createDigestDraft(app, year, month) {
   const digest = buildDigest(app, year, month);
   if (!digest) return { skipped: "за месяц ничего нового" };
   const existing = app.findRecordsByFilter("news", "title = {:title}", "", 1, 0, { title: digest.title });
-  if (existing.length) return { skipped: "выпуск за этот месяц уже есть", record: existing[0] };
+  if (existing.length) return { skipped: "отчёт за этот месяц уже есть", record: existing[0] };
 
   const record = new Record(app.findCollectionByNameOrId("news"));
   record.set("title", digest.title);

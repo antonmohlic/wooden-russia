@@ -117,8 +117,6 @@ function render(obj, objects) {
 
   renderObservationsSection(document.getElementById("observations"), obj);
   renderVisitButtons(document.getElementById("visit-buttons"), obj);
-  // Ссылка вида object.html?id=…#observations — страница рисуется скриптом, поэтому прокручиваем сами
-  if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
 
   // Предложить правку можно, только когда сервер доступен
   checkServer().then((available) => (document.getElementById("suggest-edit").hidden = !available));
