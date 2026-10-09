@@ -1,5 +1,4 @@
-// Личный кабинет: профиль, смена пароля, выход.
-// Заявки участника и модерация появятся здесь на следующих шагах.
+// Личный кабинет: профиль, личные списки, заявки, наблюдения, смена пароля, выход.
 
 const root = document.getElementById("account");
 
@@ -52,6 +51,16 @@ function render(user) {
            </section>`
         : ""
     }
+
+    <section class="panel" id="my-lists">
+      <h2>Мои списки</h2>
+      <div class="tabs" role="tablist">
+        ${Object.entries(VISIT_LISTS)
+          .map(([list, info], i) => `<button class="tab${i ? "" : " active"}" type="button" role="tab" data-list="${list}" aria-selected="${!i}">${info.label} <span class="tab-count"></span></button>`)
+          .join("")}
+      </div>
+      <div id="lists-content"><p class="form-hint">Загрузка…</p></div>
+    </section>
 
     <section class="panel" id="submissions">
       <h2>Мои предложения</h2>
@@ -160,6 +169,7 @@ function render(user) {
   }
   loadSubmissions();
   loadMyObservations(user);
+  loadMyLists();
 
   if (user.role === "admin") {
     const pending = encodeURIComponent('status = "pending"');
@@ -169,6 +179,42 @@ function render(user) {
       .then(([subs, obs]) => (document.getElementById("pending-total").textContent = `${subs.totalItems} заявок, ${obs.totalItems} наблюдений`))
       .catch(() => (document.getElementById("pending-total").textContent = "?"));
   }
+}
+
+// ---------- Мои списки: «Хочу посетить» и «Я здесь был» ----------
+
+async function loadMyLists() {
+  const section = document.getElementById("my-lists");
+  const content = document.getElementById("lists-content");
+  let visits;
+  try {
+    visits = await fetchMyVisits();
+  } catch (e) {
+    content.innerHTML = `<p class="form-error">${escapeHtml(e.message)}</p>`;
+    return;
+  }
+  const byList = Object.fromEntries(
+    Object.keys(VISIT_LISTS).map((list) => [list, visits.filter((v) => v.list === list && v.expand?.object).map((v) => fromRecord(v.expand.object))])
+  );
+  section.querySelectorAll(".tab").forEach((tab) => {
+    const count = byList[tab.dataset.list].length;
+    tab.querySelector(".tab-count").textContent = count ? `(${count})` : "";
+  });
+
+  const show = (list) => {
+    section.querySelectorAll(".tab").forEach((tab) => {
+      const active = tab.dataset.list === list;
+      tab.classList.toggle("active", active);
+      tab.setAttribute("aria-selected", active);
+    });
+    const objects = byList[list];
+    content.innerHTML = objects.length
+      ? `<div class="mini-grid">${objects.map((obj) => miniCardHtml(obj, [obj.region, dateLabel(obj)].filter(Boolean).join(" · "))).join("")}</div>`
+      : `<p class="form-hint">Список пуст. Отметить объект можно кнопками «${VISIT_LISTS.want.label}» и «${VISIT_LISTS.been.label}» на его странице.</p>`;
+  };
+  section.querySelectorAll(".tab").forEach((tab) => tab.addEventListener("click", () => show(tab.dataset.list)));
+  // Открываем первый непустой список
+  show(Object.keys(VISIT_LISTS).find((list) => byList[list].length) || "want");
 }
 
 // ---------- Мои наблюдения ----------

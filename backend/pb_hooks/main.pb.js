@@ -94,3 +94,82 @@ cronAdd("cleanupUnverifiedUsers", "15 * * * *", () => {
     $app.logger().info("Удалены неподтверждённые аккаунты старше суток", "count", records.length);
   }
 });
+
+// Страница объекта с готовыми метатегами для превью ссылок в Telegram, ВКонтакте и поисковиках.
+// Они не выполняют JavaScript сайта, поэтому название, описание и фото подставляет сервер.
+// Остальное на странице по-прежнему рисует object.js.
+routerAdd("GET", "/object.html", (e) => {
+  const esc = (text) =>
+    String(text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const siteName = "Открытый каталог деревянного зодчества";
+  const siteUrl = ($app.settings().meta.appURL || "").replace(/\/+$/, "");
+  // Фото по умолчанию — Преображенская церковь в Кижах (Wikimedia Commons)
+  const defaultImage = "https://commons.wikimedia.org/wiki/Special:FilePath/Kishi_church_2.jpg?width=1200";
+
+  // Сайт лежит рядом с папкой хуков: на сервере в pb_public, при локальной разработке — в корне проекта
+  let html = "";
+  for (const dir of [__hooks + "/../pb_public", __hooks + "/../.."]) {
+    try {
+      html = toString($os.readFile(dir + "/object.html"));
+      break;
+    } catch (err) {}
+  }
+  if (!html) throw new NotFoundError();
+
+  const slug = e.request.url.query().get("id");
+  let record = null;
+  try {
+    if (slug) record = $app.findFirstRecordByData("objects", "slug", slug);
+  } catch (err) {}
+  if (!record) return e.html(200, html);
+
+  const name = record.getString("name");
+  const type = record.getString("type");
+  let description = record.getString("description").replace(/\s+/g, " ").trim();
+  if (!description) {
+    const when = record.getString("year_text") || (record.getInt("year") ? String(record.getInt("year")) : "");
+    description = [type, when, record.getString("region")].filter(Boolean).join(", ");
+  }
+  if (description.length > 200) description = description.slice(0, 197).replace(/\s+\S*$/, "") + "…";
+
+  let image = record.getString("photo") || defaultImage;
+  if (image.includes("Special:FilePath")) image = image.split("?")[0] + "?width=1200";
+
+  const url = `${siteUrl}/object.html?id=${encodeURIComponent(slug)}`;
+  const tags = [
+    `<meta name="description" content="${esc(description)}">`,
+    `<link rel="canonical" href="${esc(url)}">`,
+    `<meta property="og:type" content="article">`,
+    `<meta property="og:site_name" content="${esc(siteName)}">`,
+    `<meta property="og:locale" content="ru_RU">`,
+    `<meta property="og:title" content="${esc(name)}">`,
+    `<meta property="og:description" content="${esc(description)}">`,
+    `<meta property="og:url" content="${esc(url)}">`,
+    `<meta property="og:image" content="${esc(image)}">`,
+    `<meta name="twitter:card" content="summary_large_image">`,
+  ].join("\n  ");
+
+  html = html
+    .replace(/<title>[^<]*<\/title>/, `<title>${esc(name)} — ${esc(siteName)}</title>`)
+    .replace("</head>", `  ${tags}\n</head>`);
+  return e.html(200, html);
+});
+
+// Карта сайта для Яндекса и Google: разделы и страницы всех объектов с датой последнего изменения
+routerAdd("GET", "/sitemap.xml", (e) => {
+  const siteUrl = ($app.settings().meta.appURL || "").replace(/\/+$/, "");
+  const pages = ["index.html", "catalog.html", "museums.html", "news.html", "about.html"];
+  const entries = pages.map((page) => `  <url><loc>${siteUrl}/${page}</loc></url>`);
+  const records = $app.findRecordsByFilter("objects", "", "slug", 0, 0);
+  for (const record of records) {
+    const loc = `${siteUrl}/object.html?id=${encodeURIComponent(record.getString("slug"))}`;
+    const lastmod = record.getDateTime("updated").string().slice(0, 10);
+    entries.push(`  <url><loc>${loc.replace(/&/g, "&amp;")}</loc><lastmod>${lastmod}</lastmod></url>`);
+  }
+  const xml =
+    '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    entries.join("\n") +
+    "\n</urlset>\n";
+  return e.blob(200, "application/xml; charset=utf-8", xml);
+});

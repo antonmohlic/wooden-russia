@@ -674,7 +674,37 @@ a.credit:hover { text-decoration: underline; }
   box-shadow: var(--shadow);
 }
 
-/* Памятники на странице музея */
+/* «Хочу посетить» / «Я здесь был» */
+.visit-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.visit-button {
+  padding: 5px 12px;
+  border: 1px solid var(--wood);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--wood);
+  font: inherit;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.visit-button:hover { background: var(--bg); }
+.visit-button.is-on { background: var(--wood); color: #fff; }
+.visit-button:disabled { opacity: 0.6; cursor: wait; }
+
+.tab-count { font-weight: 400; }
+
+/* «Что рядом» на странице объекта */
+.nearby h2 { margin-bottom: 4px; }
+.nearby .form-hint { margin-bottom: 12px; }
+
+/* Памятники музея, «Что рядом», личные списки */
 .mini-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

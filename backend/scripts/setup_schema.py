@@ -247,6 +247,29 @@ def main():
         "deleteRule": IS_ADMIN,
     })
 
+    # --- Личные списки «Хочу посетить» (want) и «Я здесь был» (been): видит и меняет только владелец ---
+    is_owner = '@request.auth.id != "" && user = @request.auth.id'
+    upsert(pb, {
+        "name": "visits",
+        "type": "base",
+        "fields": [
+            {"name": "user", "type": "relation", "required": True, "collectionId": users["id"],
+             "maxSelect": 1, "cascadeDelete": True},
+            {"name": "object", "type": "relation", "required": True, "collectionId": objects["id"],
+             "maxSelect": 1, "cascadeDelete": True},
+            select("list", ["want", "been"], required=True),
+            *autodates(),
+        ],
+        # Один объект попадает в каждый список не больше одного раза
+        "indexes": ["CREATE UNIQUE INDEX idx_visits_user_object_list ON visits (user, object, list)"],
+        "listRule": is_owner,
+        "viewRule": is_owner,
+        "createRule": '@request.auth.id != "" && @request.body.user = @request.auth.id',
+        # Менять отметку не нужно: её ставят или снимают
+        "updateRule": None,
+        "deleteRule": is_owner,
+    })
+
     print("Готово.")
 
 

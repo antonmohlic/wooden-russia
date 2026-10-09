@@ -9,3 +9,4 @@ Disallow: /verify.html
 Disallow: /reset.html
 Disallow: /api/
 Disallow: /_/
+Sitemap: https://lemekh.ru/sitemap.xml

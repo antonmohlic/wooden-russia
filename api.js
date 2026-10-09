@@ -226,3 +226,26 @@ function checkServer() {
   }
   return serverCheck;
 }
+
+// ---------- Личные списки: «Хочу посетить» и «Я здесь был» ----------
+
+const VISIT_LISTS = {
+  want: { label: "Хочу посетить", mark: "☆", markOn: "★" },
+  been: { label: "Я здесь был", mark: "○", markOn: "✓" },
+};
+
+// Отметки текущего пользователя. objectRecordId — только для одного объекта, иначе все
+async function fetchMyVisits(objectRecordId) {
+  let filter = `user = "${currentUser().id}"`;
+  if (objectRecordId) filter += ` && object = "${objectRecordId}"`;
+  const query = `filter=${encodeURIComponent(filter)}&sort=-created&perPage=500&expand=object`;
+  return (await api("GET", `/api/collections/visits/records?${query}`)).items;
+}
+
+async function addVisit(objectRecordId, list) {
+  return api("POST", "/api/collections/visits/records", { user: currentUser().id, object: objectRecordId, list });
+}
+
+async function removeVisit(visitId) {
+  await api("DELETE", `/api/collections/visits/records/${visitId}`);
+}

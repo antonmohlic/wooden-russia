@@ -110,6 +110,17 @@ function mapUrl(obj) {
   return `index.html?id=${encodeURIComponent(obj.id)}`;
 }
 
+// Маленькая карточка объекта: памятники музея, «Что рядом», личные списки.
+// meta — строка под названием, по умолчанию дата постройки
+function miniCardHtml(obj, meta) {
+  return `
+    <a class="mini-card" href="${objectUrl(obj)}">
+      ${obj.photo ? `<img src="${escapeHtml(photoSrc(obj, 400))}" alt="${escapeHtml(obj.name)}" loading="lazy">` : ""}
+      <span class="mini-card-title">${escapeHtml(obj.name)}</span>
+      <span class="mini-card-meta">${escapeHtml(meta ?? dateLabel(obj))}</span>
+    </a>`;
+}
+
 // Уменьшает фото до 2000 px по большей стороне и пересохраняет в JPEG.
 // Заодно удаляются метаданные снимка (EXIF), в том числе GPS-координаты телефона.
 async function prepareImage(file) {
