@@ -168,7 +168,7 @@ bash backend/deploy.sh
 2. Базовая защита: `apt install ufw fail2ban unattended-upgrades sqlite3 unzip`, ufw с портами 22/80/443, `PasswordAuthentication no` в `/etc/ssh/sshd_config.d/00-hardening.conf`, файл подкачки 1 ГБ.
 3. Скачать PocketBase 0.40.4 linux_amd64 в `/opt/wooden-russia/`, сверить контрольную сумму с `checksums.txt` релиза, создать системного пользователя `pocketbase`.
 4. Распаковать последнюю копию базы из `backups/` в `/opt/wooden-russia/pb_data/` (владелец `pocketbase`).
-5. Создать службу `/etc/systemd/system/pocketbase.service` — `ExecStart` с адресами сайта (см. «Домен»), `--dir`, `--publicDir`, `--migrationsDir`, `--hooksDir`, `--automigrate=false`; `AmbientCapabilities=CAP_NET_BIND_SERVICE`; `User=pocketbase`. Включить: `systemctl enable --now pocketbase`.
+5. Создать службу `/etc/systemd/system/pocketbase.service` — `ExecStart` с адресами сайта (см. «Домен»), `--dir`, `--publicDir`, `--migrationsDir`, `--hooksDir`, `--automigrate=false`, `--hooksWatch=false` (иначе при выкладке PocketBase перезапускается сам и мешает перезапуску службы); `AmbientCapabilities=CAP_NET_BIND_SERVICE`; `User=pocketbase`. Включить: `systemctl enable --now pocketbase`.
 6. Поправить `SSH=` и `PB_URL=` в `backend/.env.production`, выполнить `bash backend/deploy.sh` и `PB_ENV=.env.production python backend/scripts/setup_settings.py`.
 
 ### Домен
