@@ -9,6 +9,8 @@ cd "$(dirname "$0")/.."
 ENV_FILE="backend/.env.production"
 SSH_TARGET=$(grep '^SSH=' "$ENV_FILE" | cut -d= -f2)
 SSH_KEY=$(grep '^SSH_KEY=' "$ENV_FILE" | cut -d= -f2 | sed "s#^~#$HOME#")
+# Путь к known_hosts указываем явно: новые версии ssh в Git для Windows неверно читают кириллицу в пути домашней папки
+SSH_OPTS=(-i "$SSH_KEY" -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o BatchMode=yes)
 KEEP=30
 
 mkdir -p backups
@@ -17,7 +19,7 @@ FILE="backups/wooden-russia_${STAMP}.db.gz"
 
 echo "Делаю копию базы на сервере…"
 # sqlite3 .backup — согласованная копия, даже пока сайт работает и в базу пишут
-ssh -i "$SSH_KEY" -o BatchMode=yes "$SSH_TARGET" '
+ssh "${SSH_OPTS[@]}" "$SSH_TARGET" '
   set -e
   TMP=$(mktemp /tmp/wr-backup-XXXXXX.db)
   sqlite3 /opt/wooden-russia/pb_data/data.db ".backup $TMP"
@@ -55,7 +57,7 @@ echo "Сохранено: $FILE ($(du -h "$FILE" | cut -f1))"
 
 # Загруженные файлы (фото наблюдений) хранятся отдельно от базы — в pb_data/storage
 FILES="backups/wooden-russia_${STAMP}_files.tar.gz"
-ssh -i "$SSH_KEY" -o BatchMode=yes "$SSH_TARGET" '
+ssh "${SSH_OPTS[@]}" "$SSH_TARGET" '
   if [ -d /opt/wooden-russia/pb_data/storage ]; then tar -czf - -C /opt/wooden-russia/pb_data storage; fi
 ' > "$FILES"
 if [ -s "$FILES" ]; then

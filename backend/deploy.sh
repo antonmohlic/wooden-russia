@@ -10,7 +10,8 @@ cd "$(dirname "$0")/.."
 ENV_FILE="backend/.env.production"
 SSH_TARGET=$(grep '^SSH=' "$ENV_FILE" | cut -d= -f2)
 SSH_KEY=$(grep '^SSH_KEY=' "$ENV_FILE" | cut -d= -f2 | sed "s#^~#$HOME#")
-SSH_CMD=(ssh -i "$SSH_KEY" -o BatchMode=yes "$SSH_TARGET")
+# Путь к known_hosts указываем явно: новые версии ssh в Git для Windows неверно читают кириллицу в пути домашней папки
+SSH_CMD=(ssh -i "$SSH_KEY" -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o BatchMode=yes "$SSH_TARGET")
 
 if [ -n "$(git status --porcelain)" ]; then
   echo "Внимание: есть незакоммиченные изменения — на сервер уедет последняя закоммиченная версия."
