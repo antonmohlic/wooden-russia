@@ -7,7 +7,9 @@
 // 308 — браузер повторит запрос тем же методом (важно для POST к API).
 routerUse((e) => {
   const host = (e.request.host || "").toLowerCase().replace(/:\d+$/, "");
-  if (host === "www.lemekh.ru" || host === "195-19-219-160.sslip.io") {
+  // ВРЕМЕННО: пока lemekh.ru не появился в DNS, старый адрес работает без переадресации.
+  // После переключения вернуть: host === "www.lemekh.ru" || host === "195-19-219-160.sslip.io"
+  if (host === "www.lemekh.ru") {
     return e.redirect(308, "https://lemekh.ru" + e.request.url.requestURI());
   }
   return e.next();
