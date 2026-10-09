@@ -7,7 +7,7 @@
 - [ ] Переключить сайт на **lemekh.ru**. Сервер уже принимает домен, A-записи `@` и `www` → `195.19.219.160` заведены в Рег.ру. Ждём, когда домен появится в зоне .ru, затем:
   - проверить сертификат на lemekh.ru;
   - `PB_URL` в `backend/.env.production` → `https://lemekh.ru`, запустить `setup_settings.py` (ссылки в письмах);
-  - `bash backend/deploy.sh` (переадресация с www и старого адреса) и `git push`;
+  - вернуть переадресацию со старого адреса (`git revert dd29b51` — временно отключена в `main.pb.js`), затем `bash backend/deploy.sh` и `git push`;
   - `NEW_SITE` в ветке `gh-pages` → `https://lemekh.ru`;
   - добавить сайт в Яндекс Вебмастер и Google Search Console, указать там `https://lemekh.ru/sitemap.xml`.
 
