@@ -9,7 +9,7 @@
     // Переадресация на новый адрес с сохранением страницы и параметров:
     // /wooden-russia/object.html?id=kizhi → https://новый-адрес/object.html?id=kizhi
     (function () {
-      var NEW_SITE = "https://195-19-219-160.sslip.io";
+      var NEW_SITE = "https://lemekh.ru";
       var path = location.pathname.replace(/^\/wooden-russia/, "") || "/";
       location.replace(NEW_SITE + path + location.search + location.hash);
     })();
