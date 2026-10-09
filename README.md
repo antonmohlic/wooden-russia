@@ -4,6 +4,7 @@
 
 - **Сайт:** https://lemekh.ru (старый временный адрес `195-19-219-160.sslip.io` и `www.lemekh.ru` переадресуют сюда — хук в `backend/pb_hooks/main.pb.js`)
 - **Код:** https://github.com/antonmohlic/wooden-russia
+- **Задачи:** [TASKS.md](TASKS.md)
 - **Старый адрес** `antonmohlic.github.io/wooden-russia` переадресует на сайт с сохранением страницы (ветка `gh-pages`). При смене адреса сайта поправить `NEW_SITE` в `index.html` и `404.html` этой ветки.
 
 ## Как устроено
