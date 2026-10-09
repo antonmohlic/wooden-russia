@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { href: "index.html", label: "Карта" },
   { href: "catalog.html", label: "Каталог" },
   { href: "museums.html", label: "Музеи" },
+  { href: "glossary.html", label: "Справочник" },
   { href: "about.html", label: "О сервисе" },
 ];
 
@@ -181,8 +182,9 @@ function addFavicon() {
 function renderHeader() {
   addFavicon();
   const currentPage = location.pathname.split("/").pop() || "index.html";
-  // Страница объекта относится к разделу «Каталог»
-  const activePage = currentPage === "object.html" ? "catalog.html" : currentPage;
+  // Страница объекта относится к разделу «Каталог», литература — к «Справочнику»
+  const SECTION_OF = { "object.html": "catalog.html", "bibliography.html": "glossary.html" };
+  const activePage = SECTION_OF[currentPage] || currentPage;
 
   const links = NAV_ITEMS.map((item) => {
     const active = item.href === activePage ? ' class="active" aria-current="page"' : "";

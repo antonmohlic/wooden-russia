@@ -724,6 +724,87 @@ a.credit:hover { text-decoration: underline; }
 
 .tab-count { font-weight: 400; }
 
+/* ---------- Справочник: словарь и литература ---------- */
+
+a.tab { text-align: center; text-decoration: none; }
+.ref-tabs { margin: 8px 0 20px; }
+
+.glossary-tools { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+.glossary-tools input[type="search"] {
+  font: inherit;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.chip:hover { border-color: var(--wood); }
+.chip.active { background: var(--wood); border-color: var(--wood); color: #fff; }
+
+.term-list { display: flex; flex-direction: column; gap: 14px; }
+
+.term {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 18px;
+  padding: 16px 18px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  scroll-margin-top: 16px;
+}
+.term:not(:has(.term-scheme)) { grid-template-columns: minmax(0, 1fr); }
+.term[hidden] { display: none; }
+.term h2 { margin: 0; font-size: 20px; }
+.term p { margin: 6px 0 0; }
+.term-group { color: var(--muted); font-size: 13px; }
+.term-see { font-size: 14px; color: var(--muted); }
+.term:target { outline: 2px solid var(--wood); }
+
+/* Схема термина: линии цвета текста, выделенная часть — тёплым цветом */
+.term-scheme svg { display: block; width: 100%; height: auto; color: var(--wood-dark); }
+.term-scheme .thin { fill: none; stroke: currentColor; stroke-width: 1; opacity: 0.45; }
+.term-scheme .hl, .term-scheme .hl rect, .term-scheme .hl path { fill: #f1c27d; stroke: #b45f00; }
+.term-scheme .hl .thin { stroke: #b45f00; opacity: 0.6; }
+.term-scheme .label { font-size: 14px; fill: currentColor; }
+
+@media (max-width: 560px) {
+  .term { grid-template-columns: minmax(0, 1fr); }
+  .term-scheme { max-width: 200px; }
+}
+
+.bib-section { margin-top: 28px; }
+.bib-section h2 { margin: 0 0 10px; }
+.bib-list { margin: 0; padding-left: 22px; }
+.bib-list li { margin-bottom: 14px; }
+.bib-ref { margin: 0; }
+.bib-note { margin: 4px 0 0; color: var(--muted); font-size: 15px; }
+.bib-links { padding-left: 22px; }
+.bib-links li { margin-bottom: 10px; }
+
+.badge-start {
+  display: inline-block;
+  padding: 1px 8px;
+  margin-right: 4px;
+  border-radius: 10px;
+  background: #2e7d32;
+  color: #fff;
+  font-size: 12px;
+  vertical-align: 1px;
+}
+
 /* «Что рядом» на странице объекта */
 .nearby h2 { margin-bottom: 4px; }
 .nearby .form-hint { margin-bottom: 12px; }
