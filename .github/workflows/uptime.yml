@@ -18,7 +18,7 @@ jobs:
       - name: Главная страница открывается
         run: |
           for attempt in 1 2 3; do
-            if curl -fsS --max-time 20 "$SITE_URL/" | grep -q "Открытый каталог"; then echo "OK"; exit 0; fi
+            if curl -fsS --max-time 20 "$SITE_URL/" | grep -q "Лемех"; then echo "OK"; exit 0; fi
             echo "Попытка $attempt не удалась, жду 30 секунд…"; sleep 30
           done
           echo "::error::Главная страница сайта не открывается: $SITE_URL"; exit 1

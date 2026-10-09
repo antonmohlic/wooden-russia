@@ -40,7 +40,7 @@ function factRow(label, value) {
 }
 
 function render(obj, objects) {
-  document.title = `${obj.name} — Открытый каталог деревянного зодчества`;
+  document.title = `${obj.name} — Лемех`;
 
   const museum = objects.find((item) => item.id === obj.museum);
   const items = isMuseum(obj) ? objects.filter((item) => item.museum === obj.id) : [];

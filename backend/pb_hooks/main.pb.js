@@ -103,7 +103,7 @@ cronAdd("cleanupUnverifiedUsers", "15 * * * *", () => {
 routerAdd("GET", "/object.html", (e) => {
   const esc = (text) =>
     String(text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const siteName = "Открытый каталог деревянного зодчества";
+  const siteName = "Лемех";
   const siteUrl = ($app.settings().meta.appURL || "").replace(/\/+$/, "");
   // Фото по умолчанию — Преображенская церковь в Кижах (Wikimedia Commons)
   const defaultImage = "https://commons.wikimedia.org/wiki/Special:FilePath/Kishi_church_2.jpg?width=1200";

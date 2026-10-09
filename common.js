@@ -192,9 +192,12 @@ function renderHeader() {
   const header = document.createElement("header");
   header.className = "site-header";
   header.innerHTML = `
-    <a class="brand" href="index.html" aria-label="Открытый каталог деревянного зодчества России — на главную">
+    <a class="brand" href="news.html" aria-label="Лемех — открытый каталог деревянного зодчества России. На главную: новости">
       <span class="brand-logo"></span>
-      <span class="brand-text">Открытый каталог деревянного зодчества России</span>
+      <span class="brand-text">
+        <span class="brand-name">Лемех</span>
+        <span class="brand-tagline">открытый каталог деревянного зодчества России</span>
+      </span>
     </a>
     <button class="menu-toggle" type="button" aria-label="Открыть меню" aria-expanded="false">☰</button>
     <nav class="site-nav">${links}<span class="account-link" hidden></span></nav>`;
