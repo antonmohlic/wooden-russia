@@ -14,18 +14,31 @@ function newsPhotoUrl(post) {
   return post.photo ? photoSrc(post, 1200) : "";
 }
 
+// Текст записи: абзацы через пустую строку, ссылки — [текст](адрес).
+// Адрес — страница нашего сайта (object.html?id=…) или полный адрес https://…
+function newsBodyHtml(text) {
+  return escapeHtml(text).replace(
+    /\[([^\]\n]+)\]\(((?:https?:\/\/|[a-z-]+\.html)[^\s()"<>]*)\)/g,
+    (match, label, url) => {
+      const external = /^https?:/.test(url) && !url.startsWith(location.origin);
+      return `<a href="${url}"${external ? ' target="_blank" rel="noopener"' : ""}>${label}</a>`;
+    }
+  );
+}
+
 function postHtml(post, isAdmin, index) {
   const photo = newsPhotoUrl(post);
   return `
     <article class="news-post" id="post-${escapeHtml(post.id)}">
       ${photo ? `<img class="news-photo" src="${escapeHtml(photo)}" alt=""${index > 0 ? ' loading="lazy"' : ""}>` : ""}
       ${photo ? photoCredit(post) : ""}
-      <p class="news-date">${escapeHtml(formatNewsDate(post.published_at))}</p>
+      <p class="news-date">${post.draft ? `<span class="status" style="background:#b45f00">черновик — видите только вы</span> ` : ""}${escapeHtml(formatNewsDate(post.published_at))}</p>
       <h2>${escapeHtml(post.title)}</h2>
-      ${post.body ? `<div class="news-body">${escapeHtml(post.body)}</div>` : ""}
+      ${post.body ? `<div class="news-body">${newsBodyHtml(post.body)}</div>` : ""}
       ${
         isAdmin
           ? `<div class="card-links">
+               ${post.draft ? `<button class="button" type="button" data-publish="${escapeHtml(post.id)}">Опубликовать</button>` : ""}
                <button class="link-button" type="button" data-edit="${escapeHtml(post.id)}">Изменить</button>
                <button class="link-button" type="button" data-delete="${escapeHtml(post.id)}">Удалить</button>
              </div>`
@@ -48,7 +61,7 @@ function postFormHtml(post) {
       <label>Дата
         <input type="date" name="published_at" value="${date}" required>
       </label>
-      <label>Текст (пустая строка — новый абзац)
+      <label>Текст (пустая строка — новый абзац; ссылка — [текст](адрес), например [Кижи](object.html?id=kizhi))
         <textarea name="body" rows="8" maxlength="20000">${v("body")}</textarea>
       </label>
       <fieldset class="news-photo-fields">
@@ -75,7 +88,7 @@ function postFormHtml(post) {
       </fieldset>
       <p class="form-error" role="alert" hidden></p>
       <div class="moderation-actions">
-        <button class="button" type="submit">${post ? "Сохранить" : "Опубликовать"}</button>
+        <button class="button" type="submit">${post ? (post.draft ? "Сохранить черновик" : "Сохранить") : "Опубликовать"}</button>
         ${post ? `<button class="button button--secondary" type="button" id="news-cancel">Отмена</button>` : ""}
       </div>
     </form>`;
@@ -83,7 +96,13 @@ function postFormHtml(post) {
 
 function showForm(post) {
   adminBox.innerHTML = post ? postFormHtml(post) : `
-    <p><button class="button" type="button" id="news-new">+ Новая запись</button></p>`;
+    <div class="news-admin-actions">
+      <button class="button" type="button" id="news-new">+ Новая запись</button>
+      <button class="button button--secondary" type="button" id="news-digest" title="Подборка «Под угрозой» за прошлый месяц сохранится черновиком">Собрать выпуск «Под угрозой»</button>
+    </div>
+    <p class="form-hint" id="news-digest-result" hidden></p>`;
+
+  document.getElementById("news-digest")?.addEventListener("click", collectDigest);
 
   const newButton = document.getElementById("news-new");
   if (newButton) {
@@ -151,6 +170,24 @@ function setupForm(post) {
   });
 }
 
+// Подборка «Под угрозой» за прошлый месяц. Сама приходит 1-го числа; кнопка — чтобы собрать сразу.
+async function collectDigest() {
+  const button = document.getElementById("news-digest");
+  const result = document.getElementById("news-digest-result");
+  button.disabled = true;
+  try {
+    const answer = await api("POST", "/api/threats/digest", {});
+    result.textContent = answer.id && !answer.skipped
+      ? "Черновик выпуска готов — он первым в ленте. Проверьте текст и нажмите «Опубликовать»."
+      : `Выпуск не создан: ${answer.skipped}.`;
+    await loadPosts(true);
+  } catch (e) {
+    result.textContent = e.message;
+  }
+  result.hidden = false;
+  button.disabled = false;
+}
+
 // ---------- Лента ----------
 
 async function loadPosts(isAdmin) {
@@ -163,6 +200,21 @@ async function loadPosts(isAdmin) {
   if (!isAdmin) return;
   list.querySelectorAll("[data-edit]").forEach((button) =>
     button.addEventListener("click", () => showForm(posts.find((p) => p.id === button.dataset.edit)))
+  );
+  list.querySelectorAll("[data-publish]").forEach((button) =>
+    button.addEventListener("click", async () => {
+      const post = posts.find((p) => p.id === button.dataset.publish);
+      if (!confirm(`Опубликовать «${post.title}»? Запись увидят все, дата станет сегодняшней.`)) return;
+      try {
+        await api("PATCH", `/api/collections/news/records/${post.id}`, {
+          draft: false,
+          published_at: new Date().toISOString().replace("T", " "),
+        });
+        await loadPosts(true);
+      } catch (e) {
+        alert(e.message);
+      }
+    })
   );
   list.querySelectorAll("[data-delete]").forEach((button) =>
     button.addEventListener("click", async () => {

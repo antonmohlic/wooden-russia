@@ -158,7 +158,7 @@ routerAdd("GET", "/object.html", (e) => {
 // Карта сайта для Яндекса и Google: разделы и страницы всех объектов с датой последнего изменения
 routerAdd("GET", "/sitemap.xml", (e) => {
   const siteUrl = ($app.settings().meta.appURL || "").replace(/\/+$/, "");
-  const pages = ["index.html", "catalog.html", "museums.html", "news.html", "about.html"];
+  const pages = ["index.html", "catalog.html", "museums.html", "threats.html", "news.html", "about.html"];
   const entries = pages.map((page) => `  <url><loc>${siteUrl}/${page}</loc></url>`);
   const records = $app.findRecordsByFilter("objects", "", "slug", 0, 0);
   for (const record of records) {
@@ -173,3 +173,46 @@ routerAdd("GET", "/sitemap.xml", (e) => {
     "\n</urlset>\n";
   return e.blob(200, "application/xml; charset=utf-8", xml);
 });
+
+// Запоминаем, когда у объекта менялся статус (сохранился / аварийный / утрачен) — для подборки «Под угрозой».
+// Срабатывает при любом сохранении: из модерации, из панели базы, из скриптов.
+onRecordCreate((e) => {
+  if (e.record.getString("status")) e.record.set("status_changed_at", new Date().toISOString().replace("T", " "));
+  return e.next();
+}, "objects");
+
+onRecordUpdate((e) => {
+  if (e.record.getString("status") !== e.record.original().getString("status")) {
+    e.record.set("status_changed_at", new Date().toISOString().replace("T", " "));
+  }
+  return e.next();
+}, "objects");
+
+// Подборка «Под угрозой» за прошлый месяц — 1-го числа в 9:00 по Москве (6:00 UTC), черновиком в «Новости».
+// Если за месяц ничего нового, выпуск пропускается.
+cronAdd("threatsDigest", "0 6 1 * *", () => {
+  const digest = require(`${__hooks}/digest.js`);
+  const { year, month } = digest.previousMonth();
+  try {
+    const result = digest.createDigestDraft($app, year, month);
+    $app.logger().info("Подборка «Под угрозой»", "month", `${year}-${month + 1}`, "result", result.skipped || "черновик создан");
+  } catch (err) {
+    $app.logger().error("Не удалось собрать подборку «Под угрозой»", "error", String(err));
+  }
+});
+
+// Кнопка «Собрать выпуск сейчас» на странице «Новости» (только админ сайта).
+// Тело запроса: { "month": "2026-09" }; без него — прошлый месяц.
+routerAdd("POST", "/api/threats/digest", (e) => {
+  if (e.auth?.getString("role") !== "admin") throw new ForbiddenError("Только для администратора сайта.");
+  const digest = require(`${__hooks}/digest.js`);
+  const body = e.requestInfo().body || {};
+  let { year, month } = digest.previousMonth();
+  const match = /^(\d{4})-(\d{2})$/.exec(String(body.month || ""));
+  if (match) {
+    year = Number(match[1]);
+    month = Number(match[2]) - 1;
+  }
+  const result = digest.createDigestDraft($app, year, month);
+  return e.json(200, { skipped: result.skipped || "", id: result.record ? result.record.id : "" });
+}, $apis.requireAuth("users"));

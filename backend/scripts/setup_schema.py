@@ -136,6 +136,8 @@ def main():
             text("photo_author", max_length=300),
             text("photo_license", max_length=100),
             text("photo_source", max_length=1000),
+            # Когда последний раз менялся статус — ставит сервер (pb_hooks), нужно для подборки «Под угрозой»
+            {"name": "status_changed_at", "type": "date"},
             *autodates(),
         ],
         "indexes": ["CREATE UNIQUE INDEX idx_objects_slug ON objects (slug)"],
@@ -223,7 +225,7 @@ def main():
         "deleteRule": f'({is_author} && status = "pending") || {IS_ADMIN}',
     })
 
-    # --- Новости: читают все, пишет только админ ---
+    # --- Новости: читают все (кроме черновиков), пишет только админ ---
     upsert(pb, {
         "name": "news",
         "type": "base",
@@ -238,10 +240,12 @@ def main():
             text("photo_author", max_length=300),
             text("photo_license", max_length=100),
             text("photo_source", max_length=1000),
+            # Черновик видит только админ; так приходит, например, ежемесячная подборка «Под угрозой»
+            {"name": "draft", "type": "bool"},
             *autodates(),
         ],
-        "listRule": "",
-        "viewRule": "",
+        "listRule": f"draft = false || {IS_ADMIN}",
+        "viewRule": f"draft = false || {IS_ADMIN}",
         "createRule": IS_ADMIN,
         "updateRule": IS_ADMIN,
         "deleteRule": IS_ADMIN,

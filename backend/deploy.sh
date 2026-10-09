@@ -45,8 +45,8 @@ cat /tmp/wr_migrations.tar | "${SSH_CMD[@]}" "set -e
     changed=yes
   fi
   if ! diff -rq wr_mig/backend/pb_hooks /opt/wooden-russia/pb_hooks >/dev/null; then
-    rm -f /opt/wooden-russia/pb_hooks/*.pb.js
-    cp wr_mig/backend/pb_hooks/*.pb.js /opt/wooden-russia/pb_hooks/
+    rm -f /opt/wooden-russia/pb_hooks/*.js
+    cp wr_mig/backend/pb_hooks/*.js /opt/wooden-russia/pb_hooks/
     changed=yes
   fi
   chmod -R a+rX /opt/wooden-russia/pb_migrations /opt/wooden-russia/pb_hooks
