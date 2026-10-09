@@ -276,7 +276,7 @@ async function renderList() {
 
   const filter = encodeURIComponent(`status = "${currentTab}"`);
   const sort = currentTab === "pending" ? "created" : "-reviewed_at";
-  const result = await api("GET", `/api/collections/submissions/records?filter=${filter}&sort=${sort}&perPage=100&expand=author,reviewed_by`);
+  const result = await api("GET", `/api/collections/submissions/records?filter=${filter}&sort=${sort}&perPage=500&expand=author,reviewed_by`);
 
   list.innerHTML = result.items.length
     ? result.items.map(submissionCardHtml).join("")
