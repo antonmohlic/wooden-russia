@@ -60,6 +60,13 @@ function makeSlug(text) {
     .slice(0, 80);
 }
 
+// Адрес страницы нового объекта: предложенный в заявке (например, чтобы к музею сразу привязались его памятники),
+// если он свободен, иначе — из названия
+function suggestedSlug(data) {
+  const wanted = data?.slug;
+  return wanted && /^[a-z0-9-]+$/.test(wanted) && !objectsBySlug.has(wanted) ? wanted : uniqueSlug(makeSlug(data?.name));
+}
+
 function uniqueSlug(base) {
   let slug = base || "object";
   for (let i = 2; objectsBySlug.has(slug); i++) slug = `${base}-${i}`;
@@ -172,7 +179,7 @@ function submissionCardHtml(sub) {
         ${body}
         ${
           pending
-            ? `${sub.kind === "create" ? `<label>Адрес страницы объекта (латиницей)<input type="text" name="slug" value="${escapeHtml(uniqueSlug(makeSlug(sub.data?.name)))}" pattern="[a-z0-9-]+"></label>` : ""}
+            ? `${sub.kind === "create" ? `<label>Адрес страницы объекта (латиницей)<input type="text" name="slug" value="${escapeHtml(suggestedSlug(sub.data))}" pattern="[a-z0-9-]+"></label>` : ""}
                <label>Комментарий автору (обязателен при отклонении)
                  <textarea name="admin_comment" rows="2" maxlength="2000"></textarea>
                </label>
