@@ -316,5 +316,12 @@ function fillContactLinks() {
   });
 }
 
+// Подпись в углу карт: без флага, который Leaflet по умолчанию ставит перед своим названием.
+// Название библиотеки и обязательное «© OpenStreetMap» остаются.
+if (typeof L !== "undefined") {
+  L.Control.Attribution.prototype.options.prefix =
+    '<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>';
+}
+
 renderHeader();
 fillContactLinks();
