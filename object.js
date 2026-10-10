@@ -88,7 +88,9 @@ function render(obj, objects) {
       </figure>
 
       <div class="object-info">
-        ${isMuseum(obj) ? museumBadge() : statusBadge(obj.status)}
+        ${worthBadge(obj)}${isMuseum(obj) ? museumBadge() : statusBadge(obj.status)}
+        ${obj.visit_why ? `<p class="visit-why"><strong>Зачем ехать.</strong> ${escapeHtml(obj.visit_why)}</p>` : ""}
+        ${obj.visit_info ? `<p class="visit-info"><strong>Как добраться.</strong> ${escapeHtml(obj.visit_info)}</p>` : ""}
         <div class="visit-buttons" id="visit-buttons" hidden></div>
         <dl class="facts">${facts.join("")}</dl>
         ${obj.description ? `<p class="description">${escapeHtml(obj.description)}</p>` : ""}

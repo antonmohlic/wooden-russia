@@ -21,7 +21,7 @@ function cardHtml(obj) {
         ${museum ? `<p>В музее: <a href="${objectUrl(museum)}">${escapeHtml(museum.name)}</a></p>` : ""}
         <p>${escapeHtml(obj.address)}</p>
         <p>${escapeHtml(yearLine(obj))}</p>
-        ${isMuseum(obj) ? museumBadge() : statusBadge(obj.status)}
+        ${worthBadge(obj)}${isMuseum(obj) ? museumBadge() : statusBadge(obj.status)}
         <div class="card-links">
           <a href="${objectUrl(obj)}">Подробнее</a>
           <a href="${mapUrl(obj)}">На карте</a>

@@ -10,6 +10,9 @@ const FIELDS = [
   ["name", "Название"],
   ["type", "Тип"],
   ["status", "Состояние"],
+  ["worth_visit", "Стоит поехать"],
+  ["visit_why", "Зачем ехать"],
+  ["visit_info", "Как добраться"],
   ["museum", "В музее"],
   ["origin", "Откуда перевезён"],
   ["heritage_category", "Охранный статус"],
@@ -43,6 +46,17 @@ const STATUS_TABS = [
 let objects = [];
 let objectsBySlug = new Map();
 let currentTab = "pending";
+// Отбор заявок: все, только «Стоит поехать» или остальные
+let currentWorth = "all";
+const WORTH_FILTERS = [
+  ["all", "Все"],
+  ["worth", "★ Стоит поехать"],
+  ["other", "Остальные"],
+];
+
+function isWorthSubmission(sub) {
+  return sub.data?.worth_visit === true;
+}
 
 // ---------- Вспомогательное ----------
 
@@ -81,7 +95,8 @@ function formatDateTime(value) {
 }
 
 function display(value) {
-  if (value === null || value === undefined || value === "") return `<span class="empty-value">—</span>`;
+  if (value === null || value === undefined || value === "" || value === false) return `<span class="empty-value">—</span>`;
+  if (value === true) return "да";
   const text = String(value);
   if (/^https?:\/\//.test(text)) return `<a href="${escapeHtml(text)}" target="_blank" rel="noopener">${escapeHtml(text.length > 60 ? text.slice(0, 60) + "…" : text)}</a>`;
   return escapeHtml(text);
@@ -103,7 +118,8 @@ function inputHtml(key, value) {
       .map((m) => `<option value="${escapeHtml(m.id)}"${m.id === value ? " selected" : ""}>${escapeHtml(m.name)}</option>`)
       .join("")}</select>`;
   }
-  if (key === "description") return `<textarea name="${key}" rows="5">${v}</textarea>`;
+  if (key === "worth_visit") return `<label class="checkbox-inline"><input type="checkbox" name="${key}"${value ? " checked" : ""}> ★ стоит поехать</label>`;
+  if (key === "description" || key === "visit_info") return `<textarea name="${key}" rows="5">${v}</textarea>`;
   if (NUMBER_FIELDS.includes(key)) return `<input type="number" step="any" name="${key}" value="${v}">`;
   return `<input type="text" name="${key}" value="${v}">`;
 }
@@ -114,6 +130,10 @@ function readValues(form, keys) {
   for (const key of keys) {
     const field = form.elements[key];
     if (!field) continue;
+    if (field.type === "checkbox") {
+      values[key] = field.checked;
+      continue;
+    }
     const raw = field.value.trim();
     if (NUMBER_FIELDS.includes(key)) values[key] = raw === "" ? null : Number(raw);
     else values[key] = raw;
@@ -305,18 +325,47 @@ async function renderList() {
   const filter = encodeURIComponent(`status = "${currentTab}"`);
   const sort = currentTab === "pending" ? "created" : "-reviewed_at";
   // Заявок бывает много (большие партии от бота) — загружаем все страницы
-  const result = { items: [] };
+  loadedSubmissions = [];
   for (let page = 1; ; page++) {
     const part = await api("GET", `/api/collections/submissions/records?filter=${filter}&sort=${sort}&perPage=500&page=${page}&expand=author,reviewed_by`);
-    result.items.push(...part.items);
+    loadedSubmissions.push(...part.items);
     if (page >= part.totalPages) break;
   }
+  drawSubmissions(list);
+}
 
-  list.innerHTML = result.items.length
-    ? result.items.map(submissionCardHtml).join("")
-    : `<p class="form-hint">${currentTab === "pending" ? "Новых заявок нет." : "Здесь пока пусто."}</p>`;
+// Загруженные заявки текущей вкладки: переключатель «Стоит поехать» и разбор заявок не загружают их заново
+let loadedSubmissions = [];
 
-  const byId = new Map(result.items.map((s) => [s.id, s]));
+function drawSubmissions(list) {
+  const all = loadedSubmissions;
+  // «Стоит поехать» — наверху, остальное в прежнем порядке
+  const worthCount = all.filter(isWorthSubmission).length;
+  const items = all
+    .filter((s) => currentWorth === "all" || (currentWorth === "worth") === isWorthSubmission(s))
+    .sort((a, b) => isWorthSubmission(b) - isWorthSubmission(a));
+  const counts = { all: all.length, worth: worthCount, other: all.length - worthCount };
+
+  list.innerHTML = `
+    <div class="chips worth-switch" role="group" aria-label="Какие заявки показать">
+      ${WORTH_FILTERS.map(
+        ([key, label]) => `<button class="chip${key === currentWorth ? " active" : ""}" type="button" data-worth="${key}">${label} (${counts[key]})</button>`
+      ).join("")}
+    </div>
+    ${
+      items.length
+        ? items.map(submissionCardHtml).join("")
+        : `<p class="form-hint">${currentTab === "pending" && !all.length ? "Новых заявок нет." : "Здесь пока пусто."}</p>`
+    }`;
+
+  list.querySelectorAll("[data-worth]").forEach((button) =>
+    button.addEventListener("click", () => {
+      currentWorth = button.dataset.worth;
+      drawSubmissions(list);
+    })
+  );
+
+  const byId = new Map(all.map((s) => [s.id, s]));
   list.querySelectorAll("[data-action]").forEach((button) =>
     button.addEventListener("click", async () => {
       const card = button.closest(".moderation-card");
@@ -328,8 +377,11 @@ async function renderList() {
       try {
         const done = button.dataset.action === "approve" ? await approve(sub, form) : await reject(sub, form);
         if (done) {
+          // Рассмотренная заявка уходит из списка; остальные остаются на месте, прокрутка не сбивается
           await reloadObjects();
-          await renderList();
+          loadedSubmissions = loadedSubmissions.filter((s) => s !== sub);
+          drawSubmissions(list);
+          updatePendingCounts().catch(() => {});
           return;
         }
       } catch (e) {

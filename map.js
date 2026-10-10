@@ -30,15 +30,16 @@ const markersLayer = L.markerClusterGroup({
   },
 }).addTo(map);
 
-// Метка памятника: кружок цвета статуса
+// Метка памятника: кружок цвета статуса; «Стоит поехать» — крупнее и со звездой
 function objectIcon(obj) {
   const color = STATUS_COLORS[obj.status] || "#555";
+  const size = obj.worth_visit ? 28 : 20;
   return L.divIcon({
     className: "",
-    html: `<div class="object-marker" style="background:${color}"></div>`,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
-    popupAnchor: [0, -10],
+    html: `<div class="object-marker${obj.worth_visit ? " object-marker--worth" : ""}" style="background:${color}">${obj.worth_visit ? "★" : ""}</div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2],
   });
 }
 
@@ -56,7 +57,8 @@ function popupHtml(obj, museum) {
       ${museum ? `<p>В музее: <a href="${objectUrl(museum)}">${escapeHtml(museum.name)}</a></p>` : ""}
       <p>${escapeHtml(obj.address)}</p>
       <p>${escapeHtml(yearLine(obj))}</p>
-      ${statusBadge(obj.status)}
+      ${worthBadge(obj)}${statusBadge(obj.status)}
+      ${obj.visit_why ? `<p class="popup-why">${escapeHtml(obj.visit_why)}</p>` : ""}
       <div class="popup-links">
         <a href="${objectUrl(obj)}">Подробнее →</a>
         ${obj.wiki ? `<a href="${escapeHtml(obj.wiki)}" target="_blank" rel="noopener">Википедия</a>` : ""}

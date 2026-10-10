@@ -84,6 +84,11 @@ function statusBadge(status) {
   return `<span class="status" style="background:${color}">${escapeHtml(status)}</span>`;
 }
 
+// Значок «Стоит поехать» — объект, ради которого стоит ехать специально
+function worthBadge(obj) {
+  return obj.worth_visit ? `<span class="status status--worth">★ Стоит поехать</span>` : "";
+}
+
 function museumBadge() {
   return `<span class="status" style="background:${MUSEUM_COLOR}">музейный комплекс</span>`;
 }
@@ -236,7 +241,7 @@ function renderAccountLink(slot, activePage) {
 
 // ---------- Фильтры (общие для карты и каталога) ----------
 
-const FILTER_KEYS = ["q", "region", "type", "century", "status", "museum"];
+const FILTER_KEYS = ["q", "worth", "region", "type", "century", "status", "museum"];
 
 // Приводит текст к виду для поиска: без регистра, «ё» = «е»
 function normalize(text) {
@@ -261,6 +266,7 @@ function createFilters(container, objects, onChange) {
 
   container.innerHTML = `
     <input type="search" name="q" placeholder="Поиск: название, село, район…" autocomplete="off">
+    ${selectHtml("worth", "Все объекты", [["1", "★ Только «Стоит поехать»"]])}
     ${selectHtml("region", "Все регионы", toOptions(uniqueSorted(objects.map((o) => o.region))))}
     ${selectHtml("type", "Все типы", toOptions(uniqueSorted(objects.map((o) => o.type))))}
     ${selectHtml("century", "Любой век", centuries.map((c) => [c, centuryLabel(c)]))}
@@ -313,6 +319,7 @@ function filterObjects(objects, state) {
   const query = normalize(state.q);
   return objects.filter((obj) => {
     if (query && !normalize(`${obj.name} ${obj.address} ${obj.region} ${obj.origin || ""}`).includes(query)) return false;
+    if (state.worth && !obj.worth_visit) return false;
     if (state.region && obj.region !== state.region) return false;
     if (state.type && obj.type !== state.type) return false;
     if (state.century && String(centuryOf(obj)) !== state.century) return false;

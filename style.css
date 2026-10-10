@@ -591,6 +591,17 @@ a.button {
   font-size: 12px;
 }
 
+.status--worth {
+  margin-right: 6px;
+  background: #e0a100;
+  color: #2b1d00;
+  font-weight: 600;
+}
+
+.visit-why,
+.visit-info { margin: 10px 0 0; }
+.popup-why { font-style: italic; }
+
 .credit {
   display: block;
   margin-top: 2px;
@@ -754,6 +765,9 @@ a.tab { text-align: center; text-decoration: none; }
 }
 .chip:hover { border-color: var(--wood); }
 .chip.active { background: var(--wood); border-color: var(--wood); color: #fff; }
+.worth-switch { margin: 12px 0; }
+.form .checkbox-inline { flex-direction: row; align-items: center; gap: 8px; color: var(--text, inherit); }
+.diff-after .checkbox-inline input { width: 18px; height: 18px; padding: 0; }
 
 .term-list { display: flex; flex-direction: column; gap: 14px; }
 
@@ -1039,6 +1053,18 @@ a.tab { text-align: center; text-decoration: none; }
   border-radius: 3px;
 }
 
+.dot--worth {
+  width: 16px;
+  height: 16px;
+  background: #555;
+  border-color: #e0a100;
+  color: #ffd54a;
+  font-size: 10px;
+  line-height: 12px;
+  text-align: center;
+  vertical-align: middle;
+}
+
 /* Круглая метка памятника (цвет — статус сохранности) */
 .object-marker {
   width: 20px;
@@ -1046,6 +1072,20 @@ a.tab { text-align: center; text-decoration: none; }
   border: 2px solid #fff;
   border-radius: 50%;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+/* «Стоит поехать»: крупнее, золотая обводка и звезда */
+.object-marker--worth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 3px solid #e0a100;
+  color: #ffd54a;
+  font-size: 14px;
+  line-height: 1;
+  box-shadow: 0 0 0 3px rgba(224, 161, 0, 0.3), 0 1px 4px rgba(0, 0, 0, 0.45);
 }
 
 /* Группа близких меток: кружок с числом */
