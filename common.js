@@ -84,9 +84,9 @@ function statusBadge(status) {
   return `<span class="status" style="background:${color}">${escapeHtml(status)}</span>`;
 }
 
-// Значок «Стоит поехать» — объект, ради которого стоит ехать специально
+// Значок «Стоит посетить» — объект, который стоит посетить, даже если ехать специально
 function worthBadge(obj) {
-  return obj.worth_visit ? `<span class="status status--worth">★ Стоит поехать</span>` : "";
+  return obj.worth_visit ? `<span class="status status--worth">★ Стоит посетить</span>` : "";
 }
 
 function museumBadge() {
@@ -271,7 +271,7 @@ function createFilters(container, objects, onChange) {
 
   container.innerHTML = `
     <input type="search" name="q" placeholder="Поиск: название, село, район…" autocomplete="off">
-    ${selectHtml("worth", "Все объекты", [["1", "★ Только «Стоит поехать»"]])}
+    ${selectHtml("worth", "Все объекты", [["1", "★ Только «Стоит посетить»"]])}
     ${selectHtml("region", "Все регионы", toOptions(uniqueSorted(objects.map((o) => o.region))))}
     ${selectHtml("type", "Все типы", toOptions(uniqueSorted(objects.map((o) => o.type))))}
     ${selectHtml("century", "Любой век", centuries.map((c) => [c, centuryLabel(c)]))}

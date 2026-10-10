@@ -10,8 +10,8 @@ const FIELDS = [
   ["name", "Название"],
   ["type", "Тип"],
   ["status", "Состояние"],
-  ["worth_visit", "Стоит поехать"],
-  ["visit_why", "Зачем ехать"],
+  ["worth_visit", "Стоит посетить"],
+  ["visit_why", "Чем интересен"],
   ["visit_info", "Как добраться"],
   ["museum", "В музее"],
   ["origin", "Откуда перевезён"],
@@ -46,15 +46,15 @@ const STATUS_TABS = [
 let objects = [];
 let objectsBySlug = new Map();
 let currentTab = "pending";
-// Отбор заявок: все, только «Стоит поехать» или остальные
+// Отбор заявок: все, только «Стоит посетить» или остальные
 let currentWorth = "all";
 const WORTH_FILTERS = [
   ["all", "Все"],
-  ["worth", "★ Стоит поехать"],
+  ["worth", "★ Стоит посетить"],
   ["other", "Остальные"],
 ];
 
-// Заявка про объект «Стоит поехать»: метка в самой заявке или у объекта, который правят (если правка её не снимает)
+// Заявка про объект «Стоит посетить»: метка в самой заявке или у объекта, который правят (если правка её не снимает)
 function isWorthSubmission(sub) {
   if (sub.data?.worth_visit !== undefined) return sub.data.worth_visit === true;
   return sub.kind !== "create" && objectsBySlug.get(sub.target)?.worth_visit === true;
@@ -120,7 +120,7 @@ function inputHtml(key, value) {
       .map((m) => `<option value="${escapeHtml(m.id)}"${m.id === value ? " selected" : ""}>${escapeHtml(m.name)}</option>`)
       .join("")}</select>`;
   }
-  if (key === "worth_visit") return `<label class="checkbox-inline"><input type="checkbox" name="${key}"${value ? " checked" : ""}> ★ стоит поехать</label>`;
+  if (key === "worth_visit") return `<label class="checkbox-inline"><input type="checkbox" name="${key}"${value ? " checked" : ""}> ★ стоит посетить</label>`;
   if (key === "description" || key === "visit_info") return `<textarea name="${key}" rows="5">${v}</textarea>`;
   if (NUMBER_FIELDS.includes(key)) return `<input type="number" step="any" name="${key}" value="${v}">`;
   return `<input type="text" name="${key}" value="${v}">`;
@@ -379,12 +379,12 @@ async function renderList() {
   drawSubmissions(list);
 }
 
-// Загруженные заявки текущей вкладки: переключатель «Стоит поехать» и разбор заявок не загружают их заново
+// Загруженные заявки текущей вкладки: переключатель «Стоит посетить» и разбор заявок не загружают их заново
 let loadedSubmissions = [];
 
 function drawSubmissions(list) {
   const all = loadedSubmissions;
-  // «Стоит поехать» — наверху, остальное в прежнем порядке
+  // «Стоит посетить» — наверху, остальное в прежнем порядке
   const worthCount = all.filter(isWorthSubmission).length;
   const items = all
     .filter((s) => currentWorth === "all" || (currentWorth === "worth") === isWorthSubmission(s))

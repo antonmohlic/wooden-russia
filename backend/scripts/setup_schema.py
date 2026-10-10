@@ -142,7 +142,7 @@ def main():
             # Охранный статус по Единому госреестру объектов культурного наследия (ЕГРОКН, opendata.mkrf.ru)
             text("heritage_category", max_length=100),
             text("heritage_number", max_length=30),
-            # «Стоит поехать»: объект, ради которого стоит ехать, зачем и как добраться
+            # «Стоит посетить»: объект, который стоит посетить, чем интересен и как добраться
             {"name": "worth_visit", "type": "bool"},
             text("visit_why", max_length=500),
             text("visit_info", max_length=2000),

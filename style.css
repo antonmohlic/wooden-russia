@@ -1094,7 +1094,7 @@ a.tab { text-align: center; text-decoration: none; }
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
 }
 
-/* «Стоит поехать»: крупнее, золотая обводка и звезда */
+/* «Стоит посетить»: крупнее, золотая обводка и звезда */
 .object-marker--worth {
   display: flex;
   align-items: center;

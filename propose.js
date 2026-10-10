@@ -118,9 +118,9 @@ function formHtml(obj, museums, regions) {
       </section>
 
       <section class="panel">
-        <h2>Стоит поехать</h2>
-        <label class="checkbox"><input type="checkbox" name="worth_visit"${obj.worth_visit ? " checked" : ""}><span>★ Ради этого объекта стоит поехать специально</span></label>
-        <label>Зачем ехать
+        <h2>Стоит посетить</h2>
+        <label class="checkbox"><input type="checkbox" name="worth_visit"${obj.worth_visit ? " checked" : ""}><span>★ Этот объект стоит посетить, даже если ехать специально</span></label>
+        <label>Чем интересен
           <textarea name="visit_why" rows="2" maxlength="500" placeholder="Одна-две фразы: чем объект особенный">${v("visit_why")}</textarea>
         </label>
         <label>Как добраться

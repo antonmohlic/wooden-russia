@@ -30,7 +30,7 @@ const markersLayer = L.markerClusterGroup({
   },
 }).addTo(map);
 
-// Метка памятника: кружок цвета статуса; «Стоит поехать» — крупнее и со звездой
+// Метка памятника: кружок цвета статуса; «Стоит посетить» — крупнее и со звездой
 function objectIcon(obj) {
   const color = STATUS_COLORS[obj.status] || "#555";
   const size = obj.worth_visit ? 28 : 20;
@@ -151,7 +151,7 @@ loadObjects()
       })
     );
 
-    // «Зачем ехать» в карточке свёрнуто, иначе длинный текст уводит ссылки за край карты
+    // «Чем интересен» в карточке свёрнуто, иначе длинный текст уводит ссылки за край карты
     map.on("popupopen", (event) => {
       const why = event.popup.getElement().querySelector(".popup-why");
       const more = why?.nextElementSibling;
