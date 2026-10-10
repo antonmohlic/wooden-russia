@@ -3,11 +3,11 @@
 // Серверная логика сайта (хуки PocketBase).
 // Важно: каждый обработчик выполняется изолированно — переменные снаружи функций внутри недоступны.
 
-// Один адрес сайта: со старого временного адреса и с www переадресуем на lemekh.ru с сохранением страницы.
+// Один адрес сайта: со старого временного адреса, с www и с lemekh.com переадресуем на lemekh.ru с сохранением страницы.
 // 308 — браузер повторит запрос тем же методом (важно для POST к API).
 routerUse((e) => {
   const host = (e.request.host || "").toLowerCase().replace(/:\d+$/, "");
-  if (host === "www.lemekh.ru" || host === "195-19-219-160.sslip.io") {
+  if (["www.lemekh.ru", "lemekh.com", "www.lemekh.com", "195-19-219-160.sslip.io"].includes(host)) {
     return e.redirect(308, "https://lemekh.ru" + e.request.url.requestURI());
   }
   return e.next();

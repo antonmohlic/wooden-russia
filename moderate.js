@@ -134,8 +134,8 @@ function authorLabel(author) {
 function changesTableHtml(sub, editable) {
   const target = objectsBySlug.get(sub.target);
   const data = sub.data || {};
-  // Для нового объекта показываем все поля, для правки — только изменённые
-  const keys = sub.kind === "create" ? FIELDS.map(([k]) => k).filter((k) => k in data || ["name", "type", "lat", "lon"].includes(k)) : Object.keys(data).filter((k) => k in FIELD_LABELS);
+  // Для нового объекта показываем поля из заявки и основные (их можно заполнить при принятии), для правки — только изменённые
+  const keys = sub.kind === "create" ? FIELDS.map(([k]) => k).filter((k) => k in data || ["name", "type", "status", "lat", "lon"].includes(k)) : Object.keys(data).filter((k) => k in FIELD_LABELS);
   const rows = keys.map((key) => {
     const before = sub.kind === "update" ? `<td class="diff-before">${display(target ? target[key] : "")}</td>` : "";
     const after = editable ? inputHtml(key, data[key]) : display(data[key]);

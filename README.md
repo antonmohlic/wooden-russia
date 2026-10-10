@@ -2,7 +2,7 @@
 
 Карта и каталог памятников деревянного зодчества: храмы, часовни, колокольни, избы, музеи под открытым небом. Участники предлагают новые объекты и исправления, администратор их модерирует.
 
-- **Сайт:** https://lemekh.ru (старый временный адрес `195-19-219-160.sslip.io` и `www.lemekh.ru` переадресуют сюда — хук в `backend/pb_hooks/main.pb.js`)
+- **Сайт:** https://lemekh.ru (старый временный адрес `195-19-219-160.sslip.io` `www.lemekh.ru`, `lemekh.com` переадресуют сюда — хук в `backend/pb_hooks/main.pb.js`)
 - **Код:** https://github.com/antonmohlic/wooden-russia
 - **Задачи:** [TASKS.md](TASKS.md)
 - **Старый адрес** `antonmohlic.github.io/wooden-russia` переадресует на сайт с сохранением страницы (ветка `gh-pages`). При смене адреса сайта поправить `NEW_SITE` в `index.html` и `404.html` этой ветки.
@@ -185,9 +185,9 @@ bash backend/deploy.sh
 
 ### Домен
 
-`lemekh.ru` зарегистрирован в Рег.ру (9 октября 2026, продлевать до 9 октября 2027). DNS там же: записи `A` для `lemekh.ru` и `www.lemekh.ru` → `195.19.219.160`.
+`lemekh.ru` зарегистрирован в Рег.ру (9 октября 2026, продлевать до 9 октября 2027). DNS там же: записи `A` для `lemekh.ru` и `www.lemekh.ru` → `195.19.219.160`. Там же `lemekh.com` — его записи `A` для `lemekh.com` и `www.lemekh.com` тоже должны вести на `195.19.219.160`.
 
-Служба запускается как `pocketbase serve lemekh.ru www.lemekh.ru 195-19-219-160.sslip.io …` — сертификаты на все три адреса PocketBase получает и продлевает сам, а хук переадресует `www` и старый адрес на `lemekh.ru`.
+Служба запускается как `pocketbase serve lemekh.ru www.lemekh.ru lemekh.com www.lemekh.com 195-19-219-160.sslip.io …` — сертификаты на все адреса PocketBase получает и продлевает сам, а хук переадресует `www`, `lemekh.com` и старый адрес на `lemekh.ru`.
 
 Смена домена: DNS → адреса в `ExecStart` службы (`systemctl daemon-reload && systemctl restart pocketbase`) → адрес в хуке переадресации → `PB_URL` в `backend/.env.production` и `setup_settings.py` (адрес в ссылках из писем) → `SITE_URL` в `.github/workflows/uptime.yml` → `NEW_SITE` в ветке `gh-pages`.
 
