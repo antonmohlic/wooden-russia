@@ -11,8 +11,9 @@ const NUMBER_FIELDS = ["lat", "lon", "year", "century", "founded"];
 const ALL_FIELDS = [
   "wiki", "name", "type", "status", "museum", "origin", "region", "address", "lat", "lon",
   "year", "year_text", "century", "founded", "description", "photo", "photo_author",
-  "photo_license", "photo_source", "website",
+  "photo_license", "photo_source", "website", "worth_visit", "visit_why", "visit_info",
 ];
+const CHECKBOX_FIELDS = ["worth_visit"];
 
 function optionsHtml(values, selected, placeholder) {
   const empty = placeholder !== undefined ? `<option value="">${escapeHtml(placeholder)}</option>` : "";
@@ -113,6 +114,17 @@ function formHtml(obj, museums, regions) {
         <p class="form-hint">Лучше своими словами: длинные куски из Википедии без изменений копировать нельзя по её лицензии.</p>
         <label data-only-for-museum>Официальный сайт
           <input type="url" name="website" value="${v("website")}" maxlength="500" placeholder="https://…">
+        </label>
+      </section>
+
+      <section class="panel">
+        <h2>Стоит поехать</h2>
+        <label class="checkbox"><input type="checkbox" name="worth_visit"${obj.worth_visit ? " checked" : ""}><span>★ Ради этого объекта стоит поехать специально</span></label>
+        <label>Зачем ехать
+          <textarea name="visit_why" rows="2" maxlength="500" placeholder="Одна-две фразы: чем объект особенный">${v("visit_why")}</textarea>
+        </label>
+        <label>Как добраться
+          <textarea name="visit_info" rows="4" maxlength="2000" placeholder="Дорога, транспорт, когда открыто, где остановиться">${v("visit_info")}</textarea>
         </label>
       </section>
 
@@ -228,6 +240,10 @@ function readForm(form) {
   for (const key of ALL_FIELDS) {
     const field = form.elements[key];
     if (!field || field.closest("[hidden]")) continue;
+    if (CHECKBOX_FIELDS.includes(key)) {
+      if (field.checked) data[key] = true;
+      continue;
+    }
     const raw = field.value.trim();
     if (raw === "") continue;
     data[key] = NUMBER_FIELDS.includes(key) ? Number(raw) : raw;
@@ -249,6 +265,10 @@ function validate(data) {
 function changedFields(original, data) {
   const changes = {};
   for (const key of ALL_FIELDS) {
+    if (CHECKBOX_FIELDS.includes(key)) {
+      if (Boolean(original[key]) !== Boolean(data[key])) changes[key] = Boolean(data[key]);
+      continue;
+    }
     const before = original[key] ?? "";
     const after = data[key] ?? "";
     if (String(before) !== String(after)) changes[key] = after === "" ? null : after;

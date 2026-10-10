@@ -615,6 +615,12 @@ a.button {
 .visit-why,
 .visit-info { margin: 10px 0 0; }
 .popup-why { font-style: italic; }
+.popup-why.is-clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
 
 .credit {
   display: block;

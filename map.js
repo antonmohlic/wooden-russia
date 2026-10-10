@@ -58,7 +58,7 @@ function popupHtml(obj, museum) {
       <p>${escapeHtml(obj.address)}</p>
       <p>${escapeHtml(yearLine(obj))}</p>
       ${worthBadge(obj)}${statusBadge(obj.status)}
-      ${obj.visit_why ? `<p class="popup-why">${escapeHtml(obj.visit_why)}</p>` : ""}
+      ${obj.visit_why ? `<p class="popup-why is-clamped">${escapeHtml(obj.visit_why)}</p><button class="link-button" type="button" data-more hidden>ещё…</button>` : ""}
       <div class="popup-links">
         <a href="${objectUrl(obj)}">Подробнее →</a>
         ${obj.wiki ? `<a href="${escapeHtml(obj.wiki)}" target="_blank" rel="noopener">Википедия</a>` : ""}
@@ -150,6 +150,19 @@ loadObjects()
         return [obj.id, marker.bindTooltip(obj.name)];
       })
     );
+
+    // «Зачем ехать» в карточке свёрнуто, иначе длинный текст уводит ссылки за край карты
+    map.on("popupopen", (event) => {
+      const why = event.popup.getElement().querySelector(".popup-why");
+      const more = why?.nextElementSibling;
+      if (!more?.hasAttribute("data-more")) return;
+      more.hidden = why.scrollHeight <= why.clientHeight;
+      more.addEventListener("click", () => {
+        why.classList.remove("is-clamped");
+        more.remove();
+        event.popup.update();
+      });
+    });
 
     // Кнопка «Приблизить» в карточке музея
     map.on("popupopen", (event) => {
