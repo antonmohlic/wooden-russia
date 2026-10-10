@@ -54,8 +54,10 @@ const WORTH_FILTERS = [
   ["other", "Остальные"],
 ];
 
+// Заявка про объект «Стоит поехать»: метка в самой заявке или у объекта, который правят (если правка её не снимает)
 function isWorthSubmission(sub) {
-  return sub.data?.worth_visit === true;
+  if (sub.data?.worth_visit !== undefined) return sub.data.worth_visit === true;
+  return sub.kind !== "create" && objectsBySlug.get(sub.target)?.worth_visit === true;
 }
 
 // ---------- Вспомогательное ----------
