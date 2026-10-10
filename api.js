@@ -200,6 +200,8 @@ function fromRecord(record) {
   for (const key of ["year", "century", "founded"]) {
     if (!obj[key]) obj[key] = null;
   }
+  // Загруженное фото важнее ссылки: остальной код проверяет obj.photo, а размер выбирает photoSrc
+  if (obj.photo_file) obj.photo = fileUrl("objects", obj.recordId, obj.photo_file);
   return obj;
 }
 

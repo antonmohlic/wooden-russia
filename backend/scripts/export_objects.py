@@ -39,6 +39,9 @@ def main():
             if value in ("", None, 0) and key not in ("lat", "lon"):
                 continue
             obj[key] = value
+        # Загруженное фото — полной ссылкой на сервер, чтобы его видела и копия сайта без сервера
+        if record.get("photo_file"):
+            obj["photo"] = f"{pb.url}/api/files/objects/{record['id']}/{record['photo_file']}"
         objects.append(obj)
 
     path = PROJECT_DIR / "data" / "objects.json"

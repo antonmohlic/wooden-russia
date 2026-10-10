@@ -136,6 +136,9 @@ def main():
             text("photo_author", max_length=300),
             text("photo_license", max_length=100),
             text("photo_source", max_length=1000),
+            # Своё фото, загруженное в модерации; если есть — показывается вместо ссылки photo
+            {"name": "photo_file", "type": "file", "maxSelect": 1, "maxSize": 8 * 1024 * 1024,
+             "mimeTypes": ["image/jpeg", "image/png", "image/webp"], "thumbs": ["400x0", "600x0", "1200x0"]},
             # Охранный статус по Единому госреестру объектов культурного наследия (ЕГРОКН, opendata.mkrf.ru)
             text("heritage_category", max_length=100),
             text("heritage_number", max_length=30),

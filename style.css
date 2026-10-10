@@ -427,6 +427,20 @@ a.button {
 
 .news-photo-fields legend { padding: 0 4px; color: var(--muted); font-size: 14px; }
 
+/* Своё фото в карточке заявки (модерация) */
+.own-photo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.own-photo legend { padding: 0 4px; color: var(--muted); font-size: 14px; }
+.own-photo-credit { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.own-photo-credit[hidden] { display: none; }
+
 /* ---------- Наблюдения за состоянием ---------- */
 
 .obs-section {

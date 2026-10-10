@@ -141,6 +141,43 @@ function readValues(form, keys) {
   return values;
 }
 
+// Значения → FormData, чтобы вместе с полями объекта отправить файл фото
+function toFormData(values) {
+  const data = new FormData();
+  for (const [key, value] of Object.entries(values)) {
+    if (value === null || value === undefined) continue;
+    data.append(key, typeof value === "boolean" ? String(value) : value);
+  }
+  return data;
+}
+
+const PHOTO_LICENSES = ["CC BY-SA 4.0", "CC BY 4.0", "CC0 1.0"];
+
+// Блок «Своё фото»: файл заменит фото объекта при принятии заявки
+function ownPhotoHtml() {
+  return `
+    <fieldset class="own-photo">
+      <legend>Своё фото</legend>
+      <input type="file" name="photo_upload" accept="image/jpeg,image/png,image/webp">
+      <img class="photo-preview" data-upload-preview alt="Предпросмотр фото" hidden>
+      <div class="own-photo-credit" hidden>
+        <label>Автор фото<input type="text" name="upload_author" value="${escapeHtml(currentUser()?.name || "")}" maxlength="300"></label>
+        <label>Лицензия<select name="upload_license">${PHOTO_LICENSES.map((l) => `<option>${l}</option>`).join("")}</select></label>
+      </div>
+      <p class="form-hint">Заменит фото объекта при принятии. Снимок уменьшится до 2000 px, данные о месте съёмки (GPS) удалятся.</p>
+    </fieldset>`;
+}
+
+// Выбранное фото, готовое к отправке, и подпись к нему; null — фото не выбрано
+async function readOwnPhoto(form) {
+  const file = form.elements.photo_upload?.files[0];
+  if (!file) return null;
+  const author = form.elements.upload_author.value.trim();
+  if (!author) throw new Error("Укажите автора фото.");
+  // Источник — сам сайт, ссылка на Commons больше не нужна
+  return { photo_file: await prepareImage(file), photo: "", photo_source: "", photo_author: author, photo_license: form.elements.upload_license.value };
+}
+
 // Автор заявки. Почту PocketBase показывает, только если пользователь сам открыл её,
 // поэтому её отсутствие — не признак удалённого аккаунта; удалён — если записи автора нет совсем.
 function authorLabel(author) {
@@ -224,6 +261,7 @@ function submissionCardHtml(sub) {
         ${
           pending
             ? `${sub.kind === "create" ? `<label>Адрес страницы объекта (латиницей)<input type="text" name="slug" value="${escapeHtml(suggestedSlug(sub.data))}" pattern="[a-z0-9-]+"></label>` : ""}
+               ${sub.kind !== "delete" && !missingTarget ? ownPhotoHtml() : ""}
                <label>Комментарий автору (обязателен при отклонении)
                  <textarea name="admin_comment" rows="2" maxlength="2000"></textarea>
                </label>
@@ -265,7 +303,9 @@ async function approve(sub, form) {
     const slug = form.elements.slug.value.trim();
     if (!/^[a-z0-9-]+$/.test(slug)) throw new Error("Адрес страницы: только латинские буквы, цифры и дефис.");
     if (objectsBySlug.has(slug)) throw new Error("Объект с таким адресом страницы уже есть — измените его.");
-    await api("POST", "/api/collections/objects/records", { ...values, slug });
+    const photo = await readOwnPhoto(form);
+    // С фото — одним запросом в виде формы, чтобы объект не появился без него
+    await api("POST", "/api/collections/objects/records", photo ? toFormData({ ...values, slug, ...photo }) : { ...values, slug });
     // Запоминаем, какой объект получился, — в истории и у автора будет ссылка на него
     await markReviewed(sub, "approved", comment, { target: slug });
     return true;
@@ -276,7 +316,10 @@ async function approve(sub, form) {
     const values = Object.fromEntries(
       Object.entries(readValues(form, FIELDS.map(([k]) => k))).filter(([k, v]) => proposed.includes(k) || !sameValue(v, target[k]))
     );
-    await api("PATCH", `/api/collections/objects/records/${target.recordId}`, values);
+    const photo = await readOwnPhoto(form);
+    // Новая ссылка на фото вместо загруженного: загруженное убираем, иначе оно останется главным
+    if (!photo && target.photo_file && "photo" in values && !sameValue(values.photo, target.photo)) values.photo_file = "";
+    await api("PATCH", `/api/collections/objects/records/${target.recordId}`, photo ? toFormData({ ...values, ...photo }) : values);
   } else if (sub.kind === "delete") {
     const target = objectsBySlug.get(sub.target);
     if (!confirm(`Удалить «${target.name}» с сайта? Это нельзя отменить.`)) return false;
@@ -362,6 +405,19 @@ function drawSubmissions(list) {
     button.addEventListener("click", () => {
       currentWorth = button.dataset.worth;
       drawSubmissions(list);
+    })
+  );
+
+  // Предпросмотр своего фото и подпись к нему — после выбора файла
+  list.querySelectorAll('input[name="photo_upload"]').forEach((input) =>
+    input.addEventListener("change", () => {
+      const box = input.closest(".own-photo");
+      const preview = box.querySelector("[data-upload-preview]");
+      const file = input.files[0];
+      if (preview.src) URL.revokeObjectURL(preview.src);
+      preview.hidden = !file;
+      preview.src = file ? URL.createObjectURL(file) : "";
+      box.querySelector(".own-photo-credit").hidden = !file;
     })
   );
 

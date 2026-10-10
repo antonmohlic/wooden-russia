@@ -93,8 +93,13 @@ function museumBadge() {
   return `<span class="status" style="background:${MUSEUM_COLOR}">музейный комплекс</span>`;
 }
 
-// Адрес фото нужной ширины. Wikimedia Commons сам отдаёт уменьшенную копию.
+// Адрес фото нужной ширины. Wikimedia Commons сам отдаёт уменьшенную копию,
+// для загруженного фото берём ближайшую уменьшенную копию PocketBase.
 function photoSrc(obj, width) {
+  if (obj.photo_file && obj.recordId) {
+    const thumb = [400, 600, 1200].find((w) => w >= width) || 1200;
+    return fileUrl("objects", obj.recordId, obj.photo_file, `${thumb}x0`);
+  }
   if (!obj.photo || !obj.photo.includes("Special:FilePath")) return obj.photo;
   return `${obj.photo.split("?")[0]}?width=${width}`;
 }
