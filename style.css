@@ -531,6 +531,8 @@ a.button {
 .diff-after select,
 .diff-after textarea { width: 100%; }
 .empty-value { color: var(--muted); }
+.diff-more { margin-top: 8px; }
+.diff-more summary { cursor: pointer; color: var(--muted); font-size: 14px; }
 
 .moderation-actions {
   display: flex;

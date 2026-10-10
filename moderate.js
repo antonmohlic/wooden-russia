@@ -134,15 +134,37 @@ function authorLabel(author) {
 function changesTableHtml(sub, editable) {
   const target = objectsBySlug.get(sub.target);
   const data = sub.data || {};
-  // Для нового объекта показываем поля из заявки и основные (их можно заполнить при принятии), для правки — только изменённые
-  const keys = sub.kind === "create" ? FIELDS.map(([k]) => k).filter((k) => k in data || ["name", "type", "status", "lat", "lon"].includes(k)) : Object.keys(data).filter((k) => k in FIELD_LABELS);
+  // Новый объект на модерации: все поля, пустые можно дополнить. Правка — изменённые поля, остальные ниже под катом.
+  // В истории (заявка уже рассмотрена) — только то, что было в заявке.
+  const keys =
+    sub.kind === "create"
+      ? FIELDS.map(([k]) => k).filter((k) => editable || k in data || ["name", "type", "lat", "lon"].includes(k))
+      : Object.keys(data).filter((k) => k in FIELD_LABELS);
   const rows = keys.map((key) => {
     const before = sub.kind === "update" ? `<td class="diff-before">${display(target ? target[key] : "")}</td>` : "";
     const after = editable ? inputHtml(key, data[key]) : display(data[key]);
     return `<tr><th>${FIELD_LABELS[key]}</th>${before}<td class="diff-after">${after}</td></tr>`;
   });
   const head = sub.kind === "update" ? "<tr><th></th><th>Было</th><th>Стало</th></tr>" : "";
-  return `<table class="diff-table">${head}${rows.join("")}</table>`;
+  let html = `<table class="diff-table">${head}${rows.join("")}</table>`;
+
+  if (sub.kind === "update" && editable && target) {
+    const rest = FIELDS.map(([k]) => k).filter((k) => !keys.includes(k));
+    html += `
+      <details class="diff-more">
+        <summary>Дополнить другие поля объекта</summary>
+        <table class="diff-table">${rest
+          .map((key) => `<tr><th>${FIELD_LABELS[key]}</th><td class="diff-after">${inputHtml(key, target[key])}</td></tr>`)
+          .join("")}</table>
+      </details>`;
+  }
+  return html;
+}
+
+// Для сравнения «было/стало»: пустые значения одинаковы, числа — как текст
+function sameValue(a, b) {
+  const norm = (v) => (v === null || v === undefined ? "" : String(v));
+  return norm(a) === norm(b);
 }
 
 function submissionCardHtml(sub) {
@@ -229,7 +251,11 @@ async function approve(sub, form) {
     return true;
   } else if (sub.kind === "update") {
     const target = objectsBySlug.get(sub.target);
-    const values = readValues(form, Object.keys(sub.data || {}).filter((k) => k in FIELD_LABELS));
+    // Поля из заявки отправляем всегда, остальные — только если админ их изменил
+    const proposed = Object.keys(sub.data || {}).filter((k) => k in FIELD_LABELS);
+    const values = Object.fromEntries(
+      Object.entries(readValues(form, FIELDS.map(([k]) => k))).filter(([k, v]) => proposed.includes(k) || !sameValue(v, target[k]))
+    );
     await api("PATCH", `/api/collections/objects/records/${target.recordId}`, values);
   } else if (sub.kind === "delete") {
     const target = objectsBySlug.get(sub.target);
