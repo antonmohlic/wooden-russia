@@ -20,6 +20,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 ALLOWED = {
     "name", "type", "status", "museum", "origin", "region", "address", "lat", "lon", "year", "year_text",
     "century", "founded", "description", "wiki", "website", "photo", "photo_author", "photo_license", "photo_source",
+    "heritage_category", "heritage_number",
 }
 
 

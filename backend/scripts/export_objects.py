@@ -15,7 +15,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 FIELDS = [
     "name", "museum", "origin", "region", "address", "lat", "lon", "year", "year_text", "century",
     "founded", "status", "type", "description", "wiki", "website",
-    "photo", "photo_author", "photo_license", "photo_source",
+    "photo", "photo_author", "photo_license", "photo_source", "heritage_category", "heritage_number",
 ]
 
 

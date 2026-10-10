@@ -136,6 +136,9 @@ def main():
             text("photo_author", max_length=300),
             text("photo_license", max_length=100),
             text("photo_source", max_length=1000),
+            # Охранный статус по Единому госреестру объектов культурного наследия (ЕГРОКН, opendata.mkrf.ru)
+            text("heritage_category", max_length=100),
+            text("heritage_number", max_length=30),
             # Когда последний раз менялся статус — ставит сервер (pb_hooks), нужно для подборки «Под угрозой»
             {"name": "status_changed_at", "type": "date"},
             *autodates(),

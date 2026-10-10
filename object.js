@@ -35,6 +35,15 @@ function nearbyObjects(obj, objects) {
   return result.sort((a, b) => a.km - b.km).slice(0, NEARBY_LIMIT);
 }
 
+// Охранный статус: «объект культурного наследия регионального значения, № 101410187740006» со ссылкой на открытые данные Минкультуры
+function heritageHtml(obj) {
+  if (!obj.heritage_category && !obj.heritage_number) return "";
+  const number = obj.heritage_number
+    ? `, <a href="https://opendata.mkrf.ru/opendata/7705851331-egrkn/" target="_blank" rel="noopener" title="Единый госреестр объектов культурного наследия">№ ${escapeHtml(obj.heritage_number)}</a>`
+    : "";
+  return `${escapeHtml(obj.heritage_category || "в реестре памятников")}${number}`;
+}
+
 function factRow(label, value) {
   return value ? `<dt>${label}</dt><dd>${value}</dd>` : "";
 }
@@ -60,6 +69,7 @@ function render(obj, objects) {
         factRow("Год постройки", escapeHtml(dateLabel(obj))),
         factRow("Музей", museumLink),
         factRow("Перевезена из", escapeHtml(obj.origin)),
+        factRow("Охрана", heritageHtml(obj)),
         factRow("Регион", escapeHtml(obj.region)),
         factRow("Адрес", escapeHtml(obj.address)),
         factRow("Координаты", `${obj.lat}, ${obj.lon}`),

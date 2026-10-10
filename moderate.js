@@ -12,6 +12,8 @@ const FIELDS = [
   ["status", "Состояние"],
   ["museum", "В музее"],
   ["origin", "Откуда перевезён"],
+  ["heritage_category", "Охранный статус"],
+  ["heritage_number", "Номер в реестре"],
   ["region", "Регион"],
   ["address", "Адрес"],
   ["lat", "Широта"],
