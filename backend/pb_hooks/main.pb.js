@@ -39,11 +39,11 @@ routerUse((e) => {
   return e.next();
 });
 
-// Админу сайта показываем почту пользователей (например, авторов заявок), чтобы с ними можно было связаться.
+// Админу и модератору показываем почту пользователей (например, авторов заявок), чтобы с ними можно было связаться.
 // Остальным почта чужих пользователей по-прежнему скрыта. Менять чужие почту и пароль админ не может.
 onRecordEnrich((e) => {
   const auth = e.requestInfo ? e.requestInfo.auth : null;
-  if (auth && auth.collection().name === "users" && auth.getString("role") === "admin") {
+  if (auth && auth.collection().name === "users" && ["admin", "moderator"].includes(auth.getString("role"))) {
     e.record.ignoreEmailVisibility(true);
   }
   return e.next();
@@ -72,12 +72,12 @@ onRecordAfterCreateSuccess((e) => {
 
 // Раз в час удаляем аккаунты, почту которых не подтвердили за сутки.
 // Так нельзя надолго «занять» чужую почту: настоящий владелец через сутки сможет зарегистрироваться сам.
-// Администраторов не трогаем никогда.
+// Администраторов и модераторов не трогаем никогда.
 cronAdd("cleanupUnverifiedUsers", "15 * * * *", () => {
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().replace("T", " ");
   const records = $app.findRecordsByFilter(
     "users",
-    "verified = false && role != 'admin' && created < {:cutoff}",
+    "verified = false && role != 'admin' && role != 'moderator' && created < {:cutoff}",
     "",
     500,
     0,

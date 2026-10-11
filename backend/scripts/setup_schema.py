@@ -13,6 +13,10 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 # Кто считается админом сайта (не путать с администратором базы PocketBase)
 IS_ADMIN = '@request.auth.role = "admin"'
+# Модератор разбирает заявки и наблюдения; админ может всё то же и больше
+IS_STAFF = '(@request.auth.role = "admin" || @request.auth.role = "moderator")'
+# Заблокированный участник может входить и смотреть свои списки, но ничего не отправляет на сайт
+NOT_BANNED = "@request.auth.banned = false"
 
 # Письмо «Сброс пароля». {APP_URL}, {APP_NAME}, {TOKEN} подставляет PocketBase.
 RESET_PASSWORD_TEMPLATE = {
@@ -91,16 +95,24 @@ def upsert(pb, definition):
 def main():
     pb = PocketBase()
 
-    # --- Пользователи: добавляем роль и закрываем её от самостоятельного изменения ---
+    # --- Пользователи: роль и блокировка; сам пользователь их изменить не может ---
+    # Роль и блокировку меняет админ через кабинет администратора (pb_hooks/admin.js) или панель базы
+    protected = ["role", "banned", "ban_reason", "banned_at"]
+    no_protected = " && ".join(f"@request.body.{k}:isset = false" for k in protected)
     users = upsert(pb, {
         "name": "users",
-        "fields": [select("role", ["user", "admin"])],
-        # Свой профиль видит сам пользователь, чужие — только админ (чтобы видеть авторов заявок)
-        "listRule": f"id = @request.auth.id || {IS_ADMIN}",
-        "viewRule": f"id = @request.auth.id || {IS_ADMIN}",
-        # При регистрации и редактировании профиля роль задать нельзя — её выдаёт только администратор базы
-        "createRule": "@request.body.role:isset = false",
-        "updateRule": "id = @request.auth.id && @request.body.role:isset = false",
+        "fields": [
+            select("role", ["user", "moderator", "admin"]),
+            {"name": "banned", "type": "bool"},
+            text("ban_reason", max_length=500),
+            {"name": "banned_at", "type": "date"},
+        ],
+        # Свой профиль видит сам пользователь, чужие — модератор и админ (чтобы видеть авторов заявок)
+        "listRule": f"id = @request.auth.id || {IS_STAFF}",
+        "viewRule": f"id = @request.auth.id || {IS_STAFF}",
+        "createRule": no_protected,
+        # Заблокированный не может менять профиль (например, имя, которое видно под наблюдениями)
+        "updateRule": f"id = @request.auth.id && banned = false && {no_protected}",
         "deleteRule": "id = @request.auth.id",
         "resetPasswordTemplate": RESET_PASSWORD_TEMPLATE,
         # Ссылка из письма действует 30 минут
@@ -153,8 +165,9 @@ def main():
         "indexes": ["CREATE UNIQUE INDEX idx_objects_slug ON objects (slug)"],
         "listRule": "",
         "viewRule": "",
-        "createRule": IS_ADMIN,
-        "updateRule": IS_ADMIN,
+        # Создают и меняют объекты модератор и админ (принимая заявки), удаляет — только админ
+        "createRule": IS_STAFF,
+        "updateRule": IS_STAFF,
         "deleteRule": IS_ADMIN,
     })
 
@@ -178,20 +191,20 @@ def main():
             {"name": "reviewed_at", "type": "date"},
             *autodates(),
         ],
-        # Участник видит только свои заявки, админ — все
-        "listRule": f'@request.auth.id != "" && ({is_author} || {IS_ADMIN})',
-        "viewRule": f'@request.auth.id != "" && ({is_author} || {IS_ADMIN})',
-        # Подать заявку можно только с подтверждённой почтой, от своего имени и со статусом «на модерации»
+        # Участник видит только свои заявки, модератор и админ — все
+        "listRule": f'@request.auth.id != "" && ({is_author} || {IS_STAFF})',
+        "viewRule": f'@request.auth.id != "" && ({is_author} || {IS_STAFF})',
+        # Подать заявку можно только с подтверждённой почтой, без блокировки, от своего имени и со статусом «на модерации»
         "createRule": (
-            '@request.auth.id != "" && @request.auth.verified = true'
+            f'@request.auth.id != "" && @request.auth.verified = true && {NOT_BANNED}'
             " && @request.body.author = @request.auth.id"
             ' && @request.body.status = "pending"'
             " && @request.body.admin_comment:isset = false"
             " && @request.body.reviewed_by:isset = false"
             " && @request.body.reviewed_at:isset = false"
         ),
-        # Рассматривает заявки только админ
-        "updateRule": IS_ADMIN,
+        # Рассматривают заявки модератор и админ; заявки на удаление объекта — только админ
+        "updateRule": f'{IS_ADMIN} || ({IS_STAFF} && kind != "delete")',
         # Автор может отозвать заявку, пока она не рассмотрена
         "deleteRule": f'({is_author} && status = "pending") || {IS_ADMIN}',
     })
@@ -219,19 +232,19 @@ def main():
             {"name": "reviewed_at", "type": "date"},
             *autodates(),
         ],
-        # Принятые наблюдения видят все; свои непроверенные — автор; все — админ
-        "listRule": f'status = "approved" || (@request.auth.id != "" && ({is_author} || {IS_ADMIN}))',
-        "viewRule": f'status = "approved" || (@request.auth.id != "" && ({is_author} || {IS_ADMIN}))',
-        # Добавить — только с подтверждённой почтой, от своего имени, на модерацию
+        # Принятые наблюдения видят все; свои непроверенные — автор; все — модератор и админ
+        "listRule": f'status = "approved" || (@request.auth.id != "" && ({is_author} || {IS_STAFF}))',
+        "viewRule": f'status = "approved" || (@request.auth.id != "" && ({is_author} || {IS_STAFF}))',
+        # Добавить — только с подтверждённой почтой, без блокировки, от своего имени, на модерацию
         "createRule": (
-            '@request.auth.id != "" && @request.auth.verified = true'
+            f'@request.auth.id != "" && @request.auth.verified = true && {NOT_BANNED}'
             " && @request.body.author = @request.auth.id"
             ' && @request.body.status = "pending"'
             " && @request.body.admin_comment:isset = false"
             " && @request.body.reviewed_by:isset = false"
             " && @request.body.reviewed_at:isset = false"
         ),
-        "updateRule": IS_ADMIN,
+        "updateRule": IS_STAFF,
         "deleteRule": f'({is_author} && status = "pending") || {IS_ADMIN}',
     })
 
@@ -282,6 +295,28 @@ def main():
         # Менять отметку не нужно: её ставят или снимают
         "updateRule": None,
         "deleteRule": is_owner,
+    })
+
+    # --- Журнал действий админов и модераторов: пишет только сервер (pb_hooks), читает админ ---
+    upsert(pb, {
+        "name": "admin_log",
+        "type": "base",
+        "fields": [
+            {"name": "actor", "type": "relation", "collectionId": users["id"], "maxSelect": 1},
+            # Имя на момент действия: запись остаётся понятной, даже если аккаунт потом удалят
+            text("actor_name", max_length=255),
+            select("action", ["role", "ban", "unban", "approve", "reject", "delete_object"], required=True),
+            # Над чем действие: пользователь, заявка или объект
+            text("target", max_length=300),
+            text("details", max_length=2000),
+            *autodates(),
+        ],
+        "indexes": ["CREATE INDEX idx_admin_log_created ON admin_log (created)"],
+        "listRule": IS_ADMIN,
+        "viewRule": IS_ADMIN,
+        "createRule": None,
+        "updateRule": None,
+        "deleteRule": None,
     })
 
     print("Готово.")

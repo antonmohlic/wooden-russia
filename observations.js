@@ -72,6 +72,8 @@ async function renderObservationsSection(container, obj) {
   const latest = items[0];
   const addBlock = !user
     ? `<p class="form-hint"><a href="login.html?next=${encodeURIComponent("object.html?id=" + obj.id)}">Войдите</a>, чтобы рассказать, в каком состоянии объект сейчас.</p>`
+    : user.banned
+    ? `<p class="form-hint">${escapeHtml(bannedNotice(user))}</p>`
     : !user.verified
     ? `<p class="form-hint">Добавлять наблюдения можно после подтверждения почты — <a href="account.html">в личном кабинете</a>.</p>`
     : `<button class="button button--secondary" type="button" id="obs-open">+ Я был здесь — добавить наблюдение</button>
@@ -87,7 +89,7 @@ async function renderObservationsSection(container, obj) {
     ${addBlock}
     <div class="obs-list">${items.map(observationHtml).join("")}</div>`;
 
-  if (user && user.verified) setupObservationForm(container, obj, user);
+  if (user && user.verified && !user.banned) setupObservationForm(container, obj, user);
 }
 
 function observationFormHtml() {

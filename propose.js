@@ -411,6 +411,10 @@ function render(obj, objects) {
     location.replace(`login.html?next=${encodeURIComponent(location.pathname.split("/").pop() + location.search)}`);
     return;
   }
+  if (user.banned) {
+    root.innerHTML = `<h1>Предложить объект</h1><p>${escapeHtml(bannedNotice(user))}</p><p><a class="button" href="account.html">В личный кабинет</a></p>`;
+    return;
+  }
   // Предлагать могут только участники с подтверждённой почтой (это же проверяет сервер)
   if (!user.verified) {
     root.innerHTML = `

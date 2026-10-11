@@ -10,6 +10,8 @@ function render(user) {
   root.innerHTML = `
     <h1>Личный кабинет</h1>
 
+    ${user.banned ? `<section class="panel panel--notice"><h2>Аккаунт ограничен</h2><p>${escapeHtml(bannedNotice(user))}</p></section>` : ""}
+
     ${
       user.verified
         ? ""
@@ -28,11 +30,11 @@ function render(user) {
       <h2>Профиль</h2>
       <dl class="facts">
         <dt>Почта</dt><dd>${escapeHtml(user.email)} ${user.verified ? "✓ подтверждена" : "— не подтверждена"}</dd>
-        <dt>Роль</dt><dd>${user.role === "admin" ? "администратор" : "участник"}</dd>
+        <dt>Роль</dt><dd>${ROLE_LABELS[user.role] || "участник"}</dd>
         <dt>С нами с</dt><dd>${escapeHtml(formatDate(user.created))}</dd>
       </dl>
 
-      <form class="form form--inline" id="name-form">
+      <form class="form form--inline" id="name-form"${user.banned ? " hidden" : ""}>
         <label>Имя
           <input type="text" name="name" value="${escapeHtml(user.name)}" maxlength="255" required>
         </label>
@@ -43,11 +45,14 @@ function render(user) {
     </section>
 
     ${
-      user.role === "admin"
+      isStaff()
         ? `<section class="panel">
              <h2>Модерация</h2>
              <p class="form-hint">Новых заявок от участников: <strong id="pending-total">…</strong></p>
-             <p><a class="button" href="moderate.html">Открыть очередь модерации</a></p>
+             <p class="button-row">
+               <a class="button" href="moderate.html">Открыть очередь модерации</a>
+               ${isSiteAdmin() ? `<a class="button button--secondary" href="admin.html">Кабинет администратора</a>` : ""}
+             </p>
            </section>`
         : ""
     }
@@ -171,7 +176,7 @@ function render(user) {
   loadMyObservations(user);
   loadMyLists();
 
-  if (user.role === "admin") {
+  if (isStaff()) {
     const pending = encodeURIComponent('status = "pending"');
     Promise.all(
       ["submissions", "observations"].map((c) => api("GET", `/api/collections/${c}/records?filter=${pending}&perPage=1&fields=id`))

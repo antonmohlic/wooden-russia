@@ -39,6 +39,18 @@ function isSiteAdmin() {
   return currentUser()?.role === "admin";
 }
 
+// Модератор или админ: разбирают заявки и наблюдения
+function isStaff() {
+  return ["admin", "moderator"].includes(currentUser()?.role);
+}
+
+const ROLE_LABELS = { user: "участник", moderator: "модератор", admin: "администратор" };
+
+// Текст для заблокированного участника: что случилось и почему
+function bannedNotice(user) {
+  return `Ваш аккаунт ограничен: отправлять заявки, наблюдения и менять профиль нельзя.${user.ban_reason ? ` Причина: ${user.ban_reason}` : ""}`;
+}
+
 // ---------- Запросы к серверу ----------
 
 // Ошибка сервера с понятным текстом на русском

@@ -243,6 +243,8 @@ function submissionCardHtml(sub) {
     body = changesTableHtml(sub, pending && !missingTarget);
   }
 
+  const adminOnly = sub.kind === "delete" && pending && !isSiteAdmin()
+    ? `<p class="form-hint">Удалить объект может только администратор. Заявку можно отклонить.</p>` : "";
   const photo = sub.kind === "create" && sub.data?.photo ? `<img class="photo-preview" src="${escapeHtml(photoSrc(sub.data, 500))}" alt="">` : "";
 
   return `
@@ -260,6 +262,7 @@ function submissionCardHtml(sub) {
       <form class="form">
         ${photo}
         ${body}
+        ${adminOnly}
         ${
           pending
             ? `${sub.kind === "create" ? `<label>Адрес страницы объекта (латиницей)<input type="text" name="slug" value="${escapeHtml(suggestedSlug(sub.data))}" pattern="[a-z0-9-]+"></label>` : ""}
@@ -269,7 +272,7 @@ function submissionCardHtml(sub) {
                </label>
                <p class="form-error" role="alert" hidden></p>
                <div class="moderation-actions">
-                 ${missingTarget ? "" : `<button class="button" type="button" data-action="approve">${sub.kind === "delete" ? "Удалить объект" : "Принять"}</button>`}
+                 ${missingTarget || (sub.kind === "delete" && !isSiteAdmin()) ? "" : `<button class="button" type="button" data-action="approve">${sub.kind === "delete" ? "Удалить объект" : "Принять"}</button>`}
                  <button class="button button--secondary" type="button" data-action="reject">Отклонить</button>
                </div>`
             : `<p class="submission-meta">
@@ -591,8 +594,8 @@ function showLoadError(e) {
     location.replace("login.html?next=moderate.html");
     return;
   }
-  if (user.role !== "admin") {
-    root.innerHTML = `<h1>Модерация</h1><p>Этот раздел доступен только администраторам.</p>`;
+  if (!isStaff()) {
+    root.innerHTML = `<h1>Модерация</h1><p>Этот раздел доступен только модераторам и администраторам.</p>`;
     return;
   }
   await reloadObjects();
