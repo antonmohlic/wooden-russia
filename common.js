@@ -228,35 +228,42 @@ function renderHeader() {
   });
 }
 
-// Фон с узором лемеха: администратор может выключить его у себя, чтобы сравнить (запоминается в браузере)
+// Фон с узором лемеха: администратор сравнивает варианты у себя (выбор запоминается в браузере)
 const WALLPAPER_KEY = "lemekh-wallpaper";
+const WALLPAPERS = [
+  ["", "Обои: как сейчас (прокручиваются)"],
+  ["small", "Обои: мельче"],
+  ["large", "Обои: крупнее"],
+  ["real", "Обои: реалистичнее"],
+  ["fade", "Обои: растворяются к центру"],
+  ["off", "Обои: нет"],
+];
 
 function setupWallpaperToggle(activePage) {
-  let off = false;
+  let current = "";
   try {
-    off = localStorage.getItem(WALLPAPER_KEY) === "off";
+    current = localStorage.getItem(WALLPAPER_KEY) || "";
   } catch {}
-  document.documentElement.classList.toggle("no-wallpaper", off);
-  // На карте узора не видно — там кнопка только мешала бы легенде
+  if (!WALLPAPERS.some(([key]) => key === current)) current = "";
+  const apply = () => {
+    WALLPAPERS.forEach(([key]) => key && document.documentElement.classList.toggle(`wp-${key}`, key === current));
+  };
+  apply();
+  // На карте узора не видно — там переключатель только мешал бы легенде
   if (currentUser()?.role !== "admin" || activePage === "index.html") return;
 
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "wallpaper-toggle";
-  const draw = () => {
-    button.textContent = off ? "Обои: выкл" : "Обои: вкл";
-    button.setAttribute("aria-pressed", String(!off));
-  };
-  button.addEventListener("click", () => {
-    off = !off;
-    document.documentElement.classList.toggle("no-wallpaper", off);
+  const select = document.createElement("select");
+  select.className = "wallpaper-toggle";
+  select.setAttribute("aria-label", "Вариант фона");
+  select.innerHTML = WALLPAPERS.map(([key, label]) => `<option value="${key}"${key === current ? " selected" : ""}>${label}</option>`).join("");
+  select.addEventListener("change", () => {
+    current = select.value;
+    apply();
     try {
-      localStorage.setItem(WALLPAPER_KEY, off ? "off" : "on");
+      localStorage.setItem(WALLPAPER_KEY, current);
     } catch {}
-    draw();
   });
-  draw();
-  document.body.append(button);
+  document.body.append(select);
 }
 
 // Кнопка «Войти» или имя пользователя в шапке. Если сервера нет — не показываем.

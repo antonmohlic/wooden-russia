@@ -1,7 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="52" viewBox="0 0 16 52">
   <!-- Фон сайта: ступенчатый лемех внахлёст. Создан скриптом backend/scripts/make_pattern.py — правьте там. -->
   <defs>
-    <!-- Верх лемешины в тени верхнего ряда, к концу светлее -->
     <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0.5" stop-color="#e5dcd2"/>
       <stop offset="0.65" stop-color="#eee7de"/>

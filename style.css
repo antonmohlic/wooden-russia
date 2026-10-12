@@ -39,7 +39,22 @@ html {
   background: var(--bg) url("lemekh-pattern.svg") 0 0 / 32px 104px;
 }
 
-html.no-wallpaper { background-image: none; }
+/* Варианты фона для сравнения (переключает администратор, см. setupWallpaperToggle в common.js).
+   Все, кроме основного, стоят на месте при прокрутке. */
+html.wp-off { background-image: none; }
+html.wp-small { background-size: 24px 78px; background-attachment: fixed; }
+html.wp-large { background-size: 48px 156px; background-attachment: fixed; }
+html.wp-real {
+  background-image: url("lemekh-pattern-real.svg");
+  background-size: 128px 104px;
+  background-attachment: fixed;
+}
+/* Узор по краям экрана, к центру растворяется */
+html.wp-fade {
+  background-image: radial-gradient(ellipse 60% 70% at 50% 45%, var(--bg) 40%, rgba(246, 241, 233, 0) 100%), url("lemekh-pattern.svg");
+  background-size: 100% 100%, 32px 104px;
+  background-attachment: fixed, fixed;
+}
 
 /* Переключатель фона — только у администратора */
 .wallpaper-toggle {
@@ -47,7 +62,7 @@ html.no-wallpaper { background-image: none; }
   left: 12px;
   bottom: 12px;
   z-index: 2000;
-  padding: 6px 12px;
+  padding: 6px 8px;
   border: 1px solid var(--border);
   border-radius: 16px;
   background: var(--surface);
