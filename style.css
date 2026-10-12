@@ -1353,6 +1353,3 @@ a.tab { text-align: center; text-decoration: none; }
 .photo-rules p { margin: 0 0 4px; }
 .photo-rules ul { margin: 0 0 8px; padding-left: 20px; }
 .photo-mode { display: flex; flex-direction: column; gap: 12px; }
-
-/* Подпись автора в конце страницы «О сервисе» */
-.signature { font-style: italic; }
