@@ -33,6 +33,13 @@ html, body {
   line-height: 1.5;
 }
 
+/* Фон страниц — едва заметный ступенчатый лемех (lemekh-pattern.svg).
+   Панели белые и лежат поверх, поэтому узор виден только по краям и между блоками. */
+body {
+  background-image: url("lemekh-pattern.svg");
+  background-size: 24px 78px;
+}
+
 a { color: var(--wood); }
 
 h1, h2, h3 { line-height: 1.25; }
@@ -83,6 +90,7 @@ h1, h2, h3 { line-height: 1.25; }
 }
 
 .brand-name {
+  white-space: nowrap;
   font-size: 26px;
   font-weight: 700;
   letter-spacing: 0.04em;
