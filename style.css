@@ -88,6 +88,20 @@ h1, h2, h3 { line-height: 1.25; }
   letter-spacing: 0.04em;
 }
 
+/* Пометка «бета» рядом с названием */
+.beta-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 6px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+  opacity: 0.85;
+}
+
 .brand-tagline {
   font-size: 13px;
   white-space: nowrap;
@@ -427,19 +441,67 @@ a.button {
 
 .news-photo-fields legend { padding: 0 4px; color: var(--muted); font-size: 14px; }
 
-/* Своё фото в карточке заявки (модерация) */
-.own-photo {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 12px;
-  border: 1px solid var(--border);
+/* Фото объекта в карточке заявки (модерация): кнопка замены прямо на снимке */
+.own-photo { display: flex; flex-direction: column; gap: 12px; }
+
+.photo-frame {
+  position: relative;
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+.photo-frame-img {
+  display: block;
+  max-width: 100%;
+  max-height: 320px;
   border-radius: var(--radius);
 }
 
-.own-photo legend { padding: 0 4px; color: var(--muted); font-size: 14px; }
+.photo-frame-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 320px;
+  max-width: 100%;
+  height: 180px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+}
+
+.form .photo-frame-button {
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  color: #fff;
+}
+
+.photo-frame-button {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  padding: 6px 12px;
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.photo-frame-button:hover { background: rgba(0, 0, 0, 0.8); }
+/* Поле выбора файла спрятано, но доступно с клавиатуры: по Tab фокус попадает на кнопку */
+.photo-frame-button input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.photo-frame-button:focus-within { outline: 2px solid var(--wood); outline-offset: 2px; }
 .own-photo-credit { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
 .own-photo-credit[hidden] { display: none; }
+.own-photo-credit .form-hint { grid-column: 1 / -1; }
 
 /* ---------- Наблюдения за состоянием ---------- */
 
@@ -1069,7 +1131,7 @@ a.tab { text-align: center; text-decoration: none; }
 }
 
 .dot--museum {
-  background: #6b4226;
+  background: #00695c;
   border-radius: 3px;
 }
 
@@ -1131,7 +1193,7 @@ a.tab { text-align: center; text-decoration: none; }
   height: 28px;
   border: 2px solid #fff;
   border-radius: 6px;
-  background: #6b4226;
+  background: #00695c;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
   color: #fff;
   font-size: 13px;

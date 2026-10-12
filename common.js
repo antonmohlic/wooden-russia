@@ -8,7 +8,8 @@ const STATUS_COLORS = {
 };
 
 // Цвет меток музеев
-const MUSEUM_COLOR = "#6b4226";
+// Музеи — зелёные квадраты: оттенок темнее и холоднее, чем у «сохранился», и форма другая
+const MUSEUM_COLOR = "#00695c";
 
 // Пункты меню. Чтобы добавить раздел, допишите сюда строку.
 const NAV_ITEMS = [
@@ -207,7 +208,7 @@ function renderHeader() {
     <a class="brand" href="news.html" aria-label="Лемех — открытый каталог деревянного зодчества России. На главную: новости">
       <span class="brand-logo"></span>
       <span class="brand-text">
-        <span class="brand-name">Лемех</span>
+        <span class="brand-name">Лемех <span class="beta-badge" title="Сайт в разработке: что-то может работать не так, данные пополняются">бета</span></span>
         <span class="brand-tagline">открытый каталог деревянного зодчества России</span>
       </span>
     </a>

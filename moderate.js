@@ -155,19 +155,25 @@ function toFormData(values) {
 
 const PHOTO_LICENSES = ["CC BY-SA 4.0", "CC BY 4.0", "CC0 1.0"];
 
-// Блок «Своё фото»: файл заменит фото объекта при принятии заявки
-function ownPhotoHtml() {
+// Фото объекта в карточке заявки — как в соцсетях: кнопка «Заменить фото» прямо на снимке.
+// src — текущее фото (из заявки или у объекта); выбранный файл заменит его при принятии.
+function ownPhotoHtml(src) {
   return `
-    <fieldset class="own-photo">
-      <legend>Своё фото</legend>
-      <input type="file" name="photo_upload" accept="image/jpeg,image/png,image/webp">
-      <img class="photo-preview" data-upload-preview alt="Предпросмотр фото" hidden>
+    <div class="own-photo" data-original="${escapeHtml(src || "")}">
+      <div class="photo-frame">
+        <img class="photo-frame-img" data-upload-preview src="${escapeHtml(src || "")}" alt="Фото объекта"${src ? "" : " hidden"}>
+        <div class="photo-frame-empty" data-upload-empty${src ? " hidden" : ""}>Фото нет</div>
+        <label class="photo-frame-button">📷 <span data-upload-label>${src ? "Заменить фото" : "Добавить фото"}</span>
+          <input type="file" name="photo_upload" accept="image/jpeg,image/png,image/webp">
+        </label>
+      </div>
       <div class="own-photo-credit" hidden>
         <label>Автор фото<input type="text" name="upload_author" value="${escapeHtml(currentUser()?.name || "")}" maxlength="300"></label>
         <label>Лицензия<select name="upload_license">${PHOTO_LICENSES.map((l) => `<option>${l}</option>`).join("")}</select></label>
+        <p class="form-hint">Новое фото заменит прежнее при принятии заявки. Снимок уменьшится до 2000 px, данные о месте съёмки (GPS) удалятся.
+          <button class="link-button" type="button" data-upload-cancel>Оставить прежнее фото</button></p>
       </div>
-      <p class="form-hint">Заменит фото объекта при принятии. Снимок уменьшится до 2000 px, данные о месте съёмки (GPS) удалятся.</p>
-    </fieldset>`;
+    </div>`;
 }
 
 // Выбранное фото, готовое к отправке, и подпись к нему; null — фото не выбрано
@@ -245,7 +251,12 @@ function submissionCardHtml(sub) {
 
   const adminOnly = sub.kind === "delete" && pending && !isSiteAdmin()
     ? `<p class="form-hint">Удалить объект может только администратор. Заявку можно отклонить.</p>` : "";
-  const photo = sub.kind === "create" && sub.data?.photo ? `<img class="photo-preview" src="${escapeHtml(photoSrc(sub.data, 500))}" alt="">` : "";
+  // Текущее фото: предложенное в заявке, иначе — у объекта
+  const photoUrl = sub.data?.photo ? photoSrc(sub.data, 600) : target?.photo ? photoSrc(target, 600) : "";
+  const canEditPhoto = pending && sub.kind !== "delete" && !missingTarget;
+  const photo = canEditPhoto
+    ? ownPhotoHtml(photoUrl)
+    : sub.kind === "create" && photoUrl ? `<img class="photo-preview" src="${escapeHtml(photoUrl)}" alt="">` : "";
 
   return `
     <article class="panel moderation-card" data-id="${escapeHtml(sub.id)}">
@@ -266,7 +277,6 @@ function submissionCardHtml(sub) {
         ${
           pending
             ? `${sub.kind === "create" ? `<label>Адрес страницы объекта (латиницей)<input type="text" name="slug" value="${escapeHtml(suggestedSlug(sub.data))}" pattern="[a-z0-9-]+"></label>` : ""}
-               ${sub.kind !== "delete" && !missingTarget ? ownPhotoHtml() : ""}
                <label>Комментарий автору (обязателен при отклонении)
                  <textarea name="admin_comment" rows="2" maxlength="2000"></textarea>
                </label>
@@ -413,18 +423,26 @@ function drawSubmissions(list) {
     })
   );
 
-  // Предпросмотр своего фото и подпись к нему — после выбора файла
-  list.querySelectorAll('input[name="photo_upload"]').forEach((input) =>
-    input.addEventListener("change", () => {
-      const box = input.closest(".own-photo");
-      const preview = box.querySelector("[data-upload-preview]");
-      const file = input.files[0];
-      if (preview.src) URL.revokeObjectURL(preview.src);
-      preview.hidden = !file;
-      preview.src = file ? URL.createObjectURL(file) : "";
+  // Выбрали новое фото — показываем его на месте прежнего и просим подпись; «Оставить прежнее» — откат
+  list.querySelectorAll(".own-photo").forEach((box) => {
+    const input = box.querySelector('input[name="photo_upload"]');
+    const preview = box.querySelector("[data-upload-preview]");
+    const original = box.dataset.original;
+    const show = (file) => {
+      if (preview.src.startsWith("blob:")) URL.revokeObjectURL(preview.src);
+      const src = file ? URL.createObjectURL(file) : original;
+      preview.src = src;
+      preview.hidden = !src;
+      box.querySelector("[data-upload-empty]").hidden = Boolean(src);
+      box.querySelector("[data-upload-label]").textContent = file ? "Выбрать другое" : original ? "Заменить фото" : "Добавить фото";
       box.querySelector(".own-photo-credit").hidden = !file;
-    })
-  );
+    };
+    input.addEventListener("change", () => show(input.files[0]));
+    box.querySelector("[data-upload-cancel]").addEventListener("click", () => {
+      input.value = "";
+      show(null);
+    });
+  });
 
   const byId = new Map(all.map((s) => [s.id, s]));
   list.querySelectorAll("[data-action]").forEach((button) =>
