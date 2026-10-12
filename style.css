@@ -29,15 +29,14 @@ html, body {
   margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color: var(--text);
-  background: var(--bg);
   line-height: 1.5;
 }
 
-/* Фон страниц — едва заметный ступенчатый лемех (lemekh-pattern.svg).
+/* Фон страниц — неброский ступенчатый лемех внахлёст (lemekh-pattern.svg).
+   Он на html, а не на body, чтобы покрывать всё окно, даже если страница короткая.
    Панели белые и лежат поверх, поэтому узор виден только по краям и между блоками. */
-body {
-  background-image: url("lemekh-pattern.svg");
-  background-size: 24px 78px;
+html {
+  background: var(--bg) url("lemekh-pattern.svg") 0 0 / 32px 104px;
 }
 
 a { color: var(--wood); }
@@ -178,6 +177,14 @@ h1, h2, h3 { line-height: 1.25; }
 }
 
 .page--text { max-width: 760px; }
+
+/* Текстовые страницы лежат на подложке цвета фона: узор лемеха не мешает читать */
+.page--text {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  border-radius: var(--radius);
+  background: rgba(246, 241, 233, 0.92);
+}
 
 .page h1 { margin: 0 0 16px; font-size: 28px; }
 
