@@ -39,6 +39,25 @@ html {
   background: var(--bg) url("lemekh-pattern.svg") 0 0 / 32px 104px;
 }
 
+html.no-wallpaper { background-image: none; }
+
+/* Переключатель фона — только у администратора */
+.wallpaper-toggle {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 2000;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
 a { color: var(--wood); }
 
 h1, h2, h3 { line-height: 1.25; }

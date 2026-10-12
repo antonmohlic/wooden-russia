@@ -217,6 +217,7 @@ function renderHeader() {
   document.body.prepend(header);
   loadLogo(header.querySelector(".brand-logo"));
   renderAccountLink(header.querySelector(".account-link"), activePage);
+  setupWallpaperToggle(activePage);
 
   // На телефоне меню открывается кнопкой ☰
   const toggle = header.querySelector(".menu-toggle");
@@ -225,6 +226,37 @@ function renderHeader() {
     toggle.setAttribute("aria-expanded", open);
     toggle.textContent = open ? "✕" : "☰";
   });
+}
+
+// Фон с узором лемеха: администратор может выключить его у себя, чтобы сравнить (запоминается в браузере)
+const WALLPAPER_KEY = "lemekh-wallpaper";
+
+function setupWallpaperToggle(activePage) {
+  let off = false;
+  try {
+    off = localStorage.getItem(WALLPAPER_KEY) === "off";
+  } catch {}
+  document.documentElement.classList.toggle("no-wallpaper", off);
+  // На карте узора не видно — там кнопка только мешала бы легенде
+  if (currentUser()?.role !== "admin" || activePage === "index.html") return;
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "wallpaper-toggle";
+  const draw = () => {
+    button.textContent = off ? "Обои: выкл" : "Обои: вкл";
+    button.setAttribute("aria-pressed", String(!off));
+  };
+  button.addEventListener("click", () => {
+    off = !off;
+    document.documentElement.classList.toggle("no-wallpaper", off);
+    try {
+      localStorage.setItem(WALLPAPER_KEY, off ? "off" : "on");
+    } catch {}
+    draw();
+  });
+  draw();
+  document.body.append(button);
 }
 
 // Кнопка «Войти» или имя пользователя в шапке. Если сервера нет — не показываем.
