@@ -56,7 +56,7 @@ html.wp-fade {
   background-attachment: fixed, fixed;
 }
 
-/* Переключатель фона — только у администратора */
+/* Переключатель фона (временный, для выбора стиля) */
 .wallpaper-toggle {
   position: fixed;
   left: 12px;

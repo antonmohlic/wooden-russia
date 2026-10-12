@@ -228,7 +228,8 @@ function renderHeader() {
   });
 }
 
-// Фон с узором лемеха: администратор сравнивает варианты у себя (выбор запоминается в браузере)
+// Фон с узором лемеха: варианты для сравнения, выбор запоминается в браузере.
+// Временно доступно всем посетителям — убрать, когда стиль будет выбран.
 const WALLPAPER_KEY = "lemekh-wallpaper";
 const WALLPAPERS = [
   ["", "Обои: как сейчас"],
@@ -250,7 +251,7 @@ function setupWallpaperToggle(activePage) {
   };
   apply();
   // На карте узора не видно — там переключатель только мешал бы легенде
-  if (currentUser()?.role !== "admin" || activePage === "index.html") return;
+  if (activePage === "index.html") return;
 
   const select = document.createElement("select");
   select.className = "wallpaper-toggle";
