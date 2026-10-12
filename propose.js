@@ -14,6 +14,12 @@ const ALL_FIELDS = [
   "photo_license", "photo_source", "website", "worth_visit", "visit_why", "visit_info",
 ];
 const CHECKBOX_FIELDS = ["worth_visit"];
+const PHOTO_FIELDS = ["photo", "photo_author", "photo_license", "photo_source"];
+// Лицензии для своих фото: [что сохраняется в базе, что видит участник]
+const OWN_LICENSES = [
+  ["CC BY-SA 4.0", "Свободная — CC BY-SA 4.0: можно использовать где угодно с указанием автора"],
+  ["только для сайта «Лемех»", "Только для этого сайта — другим без вашего разрешения нельзя"],
+];
 
 function optionsHtml(values, selected, placeholder) {
   const empty = placeholder !== undefined ? `<option value="">${escapeHtml(placeholder)}</option>` : "";
@@ -31,19 +37,6 @@ function formHtml(obj, museums, regions) {
     </p>
 
     <form class="form" id="object-form" novalidate>
-      <section class="panel">
-        <h2>Википедия</h2>
-        <p class="form-hint">Вставьте ссылку на статью — название, координаты, описание и фото заполнятся сами. Потом всё проверьте.</p>
-        <div class="form--inline">
-          <label>Ссылка на статью
-            <input type="url" name="wiki" value="${v("wiki")}" placeholder="https://ru.wikipedia.org/wiki/…">
-          </label>
-          <button class="button button--secondary" type="button" id="wiki-fill">Заполнить</button>
-        </div>
-        <p class="form-error" id="wiki-error" hidden></p>
-        <p class="form-success" id="wiki-success" hidden></p>
-      </section>
-
       <section class="panel">
         <h2>Основное</h2>
         <label>Название *
@@ -63,6 +56,62 @@ function formHtml(obj, museums, regions) {
         <label data-only-in-museum>Откуда перевезён
           <input type="text" name="origin" value="${v("origin")}" maxlength="300" placeholder="например: с. Кушерека, Онежский р-н">
         </label>
+      </section>
+
+      <section class="panel" id="photo-section">
+        <h2>Фото</h2>
+        <div class="form-hint photo-rules">
+          <p>Подходят фото двух типов:</p>
+          <ul>
+            <li>со свободной лицензией, в том числе с <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener">Wikimedia Commons</a>;</li>
+            <li>сделанные вами самостоятельно — тогда выберите лицензию: свободную (CC BY-SA 4.0) или «только для этого сайта».</li>
+          </ul>
+          <p>Для фото с Wikimedia Commons вставьте ссылку на страницу файла — автор и лицензия заполнятся сами.</p>
+        </div>
+        ${obj.photo ? `<p class="form-hint">Сейчас у объекта:</p><img class="photo-preview" src="${escapeHtml(photoSrc(obj, 600))}" alt="Текущее фото">` : ""}
+        <div class="chips" role="group" aria-label="Какое фото">
+          <button class="chip" type="button" data-photo-mode="own">Моё фото</button>
+          <button class="chip" type="button" data-photo-mode="link">Ссылка на фото</button>
+        </div>
+
+        <div class="photo-mode" data-mode="own" hidden>
+          <label>Файл (JPEG, PNG или WebP)
+            <input type="file" name="photo_upload" accept="image/jpeg,image/png,image/webp">
+          </label>
+          <img class="photo-preview" id="own-photo-preview" alt="Предпросмотр фото" hidden>
+          <div class="form-row">
+            <label>Автор фото
+              <input type="text" name="own_author" value="${escapeHtml(currentUser()?.name || "")}" maxlength="300">
+            </label>
+            <label>Лицензия
+              <select name="own_license">
+                ${OWN_LICENSES.map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`).join("")}
+              </select>
+            </label>
+          </div>
+          <label class="checkbox"><input type="checkbox" name="own_confirm"><span>Я автор этого фото и разрешаю опубликовать его на сайте на выбранных условиях</span></label>
+          <p class="form-hint">Снимок уменьшится до 2000 px, данные о месте съёмки (GPS) удалятся.</p>
+        </div>
+
+        <div class="photo-mode" data-mode="link" hidden>
+          <div class="form--inline">
+            <label>Ссылка на фото
+              <input type="url" name="photo" value="${obj.photo_file ? "" : v("photo")}" maxlength="1000" placeholder="https://commons.wikimedia.org/wiki/File:…">
+            </label>
+            <button class="button button--secondary" type="button" id="photo-fill">Проверить</button>
+          </div>
+          <p class="form-error" id="photo-error" hidden></p>
+          <img class="photo-preview" id="photo-preview" alt="Предпросмотр фото" hidden>
+          <div class="form-row">
+            <label>Автор фото
+              <input type="text" name="photo_author" value="${v("photo_author")}" maxlength="300">
+            </label>
+            <label>Лицензия
+              <input type="text" name="photo_license" value="${v("photo_license")}" maxlength="100" placeholder="например: CC BY-SA 4.0">
+            </label>
+          </div>
+          <input type="hidden" name="photo_source" value="${v("photo_source")}">
+        </div>
       </section>
 
       <section class="panel">
@@ -112,6 +161,9 @@ function formHtml(obj, museums, regions) {
           <textarea name="description" rows="6" maxlength="5000">${v("description")}</textarea>
         </label>
         <p class="form-hint">Лучше своими словами: длинные куски из Википедии без изменений копировать нельзя по её лицензии.</p>
+        <label>Статья в Википедии (если есть)
+          <input type="url" name="wiki" value="${v("wiki")}" maxlength="500" placeholder="https://ru.wikipedia.org/wiki/…">
+        </label>
         <label data-only-for-museum>Официальный сайт
           <input type="url" name="website" value="${v("website")}" maxlength="500" placeholder="https://…">
         </label>
@@ -126,28 +178,6 @@ function formHtml(obj, museums, regions) {
         <label>Как добраться
           <textarea name="visit_info" rows="4" maxlength="2000" placeholder="Дорога, транспорт, когда открыто, где остановиться">${v("visit_info")}</textarea>
         </label>
-      </section>
-
-      <section class="panel">
-        <h2>Фото</h2>
-        <p class="form-hint">Подходят только фото с <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener">Wikimedia Commons</a>: вставьте ссылку на страницу файла, и автор с лицензией заполнятся сами.</p>
-        <div class="form--inline">
-          <label>Ссылка на фото
-            <input type="url" name="photo" value="${v("photo")}" maxlength="1000" placeholder="https://commons.wikimedia.org/wiki/File:…">
-          </label>
-          <button class="button button--secondary" type="button" id="photo-fill">Проверить</button>
-        </div>
-        <p class="form-error" id="photo-error" hidden></p>
-        <img class="photo-preview" id="photo-preview" alt="Предпросмотр фото" hidden>
-        <div class="form-row">
-          <label>Автор фото
-            <input type="text" name="photo_author" value="${v("photo_author")}" maxlength="300">
-          </label>
-          <label>Лицензия
-            <input type="text" name="photo_license" value="${v("photo_license")}" maxlength="100">
-          </label>
-        </div>
-        <input type="hidden" name="photo_source" value="${v("photo_source")}">
       </section>
 
       <section class="panel">
@@ -276,8 +306,9 @@ function changedFields(original, data) {
   return changes;
 }
 
-async function submit(kind, data, comment, targetName = "") {
-  await api("POST", "/api/collections/submissions/records", {
+// photoFile — своё фото участника; тогда заявка уходит формой вместе с файлом
+async function submit(kind, data, comment, targetName = "", photoFile = null) {
+  const fields = {
     author: currentUser().id,
     kind,
     target: editSlug || "",
@@ -285,8 +316,26 @@ async function submit(kind, data, comment, targetName = "") {
     data,
     comment,
     status: "pending",
-  });
+  };
+  if (photoFile) {
+    const form = new FormData();
+    for (const [key, value] of Object.entries(fields)) form.append(key, key === "data" ? JSON.stringify(value) : value);
+    form.append("photo_file", photoFile);
+    await api("POST", "/api/collections/submissions/records", form);
+  } else {
+    await api("POST", "/api/collections/submissions/records", fields);
+  }
   location.href = "account.html?sent=1#submissions";
+}
+
+// Своё фото из формы: { file, photo_author, photo_license } или null, если файл не выбран
+function readOwnPhoto(form) {
+  const file = form.elements.photo_upload.files[0];
+  if (!file) return null;
+  const author = form.elements.own_author.value.trim();
+  if (!author) throw new Error("Укажите автора фото.");
+  if (!form.elements.own_confirm.checked) throw new Error("Подтвердите, что вы автор фото и разрешаете его опубликовать.");
+  return { file, photo_author: author, photo_license: form.elements.own_license.value };
 }
 
 function render(obj, objects) {
@@ -295,44 +344,27 @@ function render(obj, objects) {
   root.innerHTML = formHtml(obj, museums, regions);
 
   const form = document.getElementById("object-form");
-  const updateMap = setupPicker(form, obj);
+  setupPicker(form, obj);
   toggleMuseumFields(form);
   form.elements.type.addEventListener("change", () => toggleMuseumFields(form));
   form.elements.museum.addEventListener("change", () => toggleMuseumFields(form));
 
-  // Подставляет найденное в поля формы. В новой заявке — всё, в правке — только в пустые поля.
-  const fill = (found) => {
-    let count = 0;
-    for (const [key, value] of Object.entries(found)) {
-      const field = form.elements[key];
-      if (!field || value === undefined || value === "") continue;
-      if (obj.id && field.value.trim() !== "") continue;
-      field.value = value;
-      count++;
-    }
-    updateMap();
-    return count;
+  // Фото: своё (файл) или ссылка. По умолчанию — ссылка, если она уже есть, иначе своё.
+  let photoMode = obj.photo && !obj.photo_file ? "link" : "own";
+  const setPhotoMode = (mode) => {
+    photoMode = mode;
+    form.querySelectorAll("[data-photo-mode]").forEach((chip) => chip.classList.toggle("active", chip.dataset.photoMode === mode));
+    form.querySelectorAll(".photo-mode").forEach((box) => (box.hidden = box.dataset.mode !== mode));
   };
+  form.querySelectorAll("[data-photo-mode]").forEach((chip) => chip.addEventListener("click", () => setPhotoMode(chip.dataset.photoMode)));
+  setPhotoMode(photoMode);
 
-  // Кнопка «Заполнить» по ссылке на Википедию
-  const wikiButton = document.getElementById("wiki-fill");
-  wikiButton.addEventListener("click", async () => {
-    const error = document.getElementById("wiki-error");
-    const success = document.getElementById("wiki-success");
-    showMessage(error, "");
-    showMessage(success, "");
-    wikiButton.disabled = true;
-    try {
-      const found = await fetchFromWikipedia(form.elements.wiki.value);
-      const count = fill(found);
-      showPhotoPreview();
-      const missing = found.lat ? "" : " Координат в статье нет — поставьте точку на карте.";
-      showMessage(success, `Заполнено полей: ${count}.${missing}`);
-    } catch (e) {
-      showMessage(error, e.message);
-    } finally {
-      wikiButton.disabled = false;
-    }
+  const ownPreview = document.getElementById("own-photo-preview");
+  form.elements.photo_upload.addEventListener("change", () => {
+    const file = form.elements.photo_upload.files[0];
+    if (ownPreview.src.startsWith("blob:")) URL.revokeObjectURL(ownPreview.src);
+    ownPreview.hidden = !file;
+    ownPreview.src = file ? URL.createObjectURL(file) : "";
   });
 
   // Кнопка «Проверить» для фото
@@ -369,15 +401,34 @@ function render(obj, objects) {
     const problem = validate(data);
     if (problem) return showMessage(error, problem);
 
+    let own = null;
+    if (photoMode === "own") {
+      try {
+        own = readOwnPhoto(form);
+      } catch (e) {
+        return showMessage(error, e.message);
+      }
+      // Поля ссылки скрыты — прежнее фото объекта не трогаем; своё приходит файлом с автором и лицензией
+      for (const key of PHOTO_FIELDS) if (obj[key]) data[key] = obj[key];
+    } else if (obj.photo_file && !data.photo) {
+      // У объекта загруженное фото, а ссылку не вставили — фото не меняем
+      for (const key of PHOTO_FIELDS) if (obj[key]) data[key] = obj[key];
+    }
+
     let payload = data;
     if (obj.id) {
       payload = changedFields(obj, data);
-      if (!Object.keys(payload).length) return showMessage(error, "Вы ничего не изменили.");
+      if (!Object.keys(payload).length && !own) return showMessage(error, "Вы ничего не изменили.");
+    }
+    if (own) {
+      payload.photo_author = own.photo_author;
+      payload.photo_license = own.photo_license;
     }
     showMessage(error, "");
     button.disabled = true;
     try {
-      await submit(obj.id ? "update" : "create", payload, form.elements.comment.value.trim(), obj.name || "");
+      const photoFile = own ? await prepareImage(own.file) : null;
+      await submit(obj.id ? "update" : "create", payload, form.elements.comment.value.trim(), obj.name || "", photoFile);
     } catch (e) {
       showMessage(error, e.message);
       button.disabled = false;

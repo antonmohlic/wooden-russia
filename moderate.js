@@ -186,6 +186,15 @@ async function readOwnPhoto(form) {
   return { photo_file: await prepareImage(file), photo: "", photo_source: "", photo_author: author, photo_license: form.elements.upload_license.value };
 }
 
+// Фото, которое участник загрузил с заявкой: переносим в объект как есть
+async function submissionPhoto(sub) {
+  if (!sub.photo_file) return null;
+  const response = await fetch(fileUrl("submissions", sub.id, sub.photo_file));
+  if (!response.ok) throw new Error("Не удалось загрузить фото из заявки.");
+  const blob = await response.blob();
+  return { photo_file: new File([blob], sub.photo_file, { type: blob.type }), photo: "", photo_source: "" };
+}
+
 // Автор заявки. Почту PocketBase показывает, только если пользователь сам открыл её,
 // поэтому её отсутствие — не признак удалённого аккаунта; удалён — если записи автора нет совсем.
 function authorLabel(author) {
@@ -251,8 +260,10 @@ function submissionCardHtml(sub) {
 
   const adminOnly = sub.kind === "delete" && pending && !isSiteAdmin()
     ? `<p class="form-hint">Удалить объект может только администратор. Заявку можно отклонить.</p>` : "";
-  // Текущее фото: предложенное в заявке, иначе — у объекта
-  const photoUrl = sub.data?.photo ? photoSrc(sub.data, 600) : target?.photo ? photoSrc(target, 600) : "";
+  // Текущее фото: загруженное участником, предложенное ссылкой, иначе — у объекта
+  const photoUrl = sub.photo_file
+    ? fileUrl("submissions", sub.id, sub.photo_file, "600x0")
+    : sub.data?.photo ? photoSrc(sub.data, 600) : target?.photo ? photoSrc(target, 600) : "";
   const canEditPhoto = pending && sub.kind !== "delete" && !missingTarget;
   const photo = canEditPhoto
     ? ownPhotoHtml(photoUrl)
@@ -318,7 +329,8 @@ async function approve(sub, form) {
     const slug = form.elements.slug.value.trim();
     if (!/^[a-z0-9-]+$/.test(slug)) throw new Error("Адрес страницы: только латинские буквы, цифры и дефис.");
     if (objectsBySlug.has(slug)) throw new Error("Объект с таким адресом страницы уже есть — измените его.");
-    const photo = await readOwnPhoto(form);
+    // Фото, выбранное модератором, важнее загруженного участником
+    const photo = (await readOwnPhoto(form)) || (await submissionPhoto(sub));
     // С фото — одним запросом в виде формы, чтобы объект не появился без него
     await api("POST", "/api/collections/objects/records", photo ? toFormData({ ...values, slug, ...photo }) : { ...values, slug });
     // Запоминаем, какой объект получился, — в истории и у автора будет ссылка на него
@@ -331,7 +343,8 @@ async function approve(sub, form) {
     const values = Object.fromEntries(
       Object.entries(readValues(form, FIELDS.map(([k]) => k))).filter(([k, v]) => proposed.includes(k) || !sameValue(v, target[k]))
     );
-    const photo = await readOwnPhoto(form);
+    // Фото, выбранное модератором, важнее загруженного участником
+    const photo = (await readOwnPhoto(form)) || (await submissionPhoto(sub));
     // Новая ссылка на фото вместо загруженного: загруженное убираем, иначе оно останется главным
     if (!photo && target.photo_file && "photo" in values && !sameValue(values.photo, target.photo)) values.photo_file = "";
     await api("PATCH", `/api/collections/objects/records/${target.recordId}`, photo ? toFormData({ ...values, ...photo }) : values);

@@ -1300,3 +1300,8 @@ a.tab { text-align: center; text-decoration: none; }
 .tag--danger { background: #fdecea; color: #7f241e; }
 
 .pager { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+
+/* Раздел «Фото» в форме заявки */
+.photo-rules p { margin: 0 0 4px; }
+.photo-rules ul { margin: 0 0 8px; padding-left: 20px; }
+.photo-mode { display: flex; flex-direction: column; gap: 12px; }

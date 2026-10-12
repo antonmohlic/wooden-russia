@@ -184,6 +184,9 @@ def main():
             # Название объекта на момент подачи — чтобы заявку было понятно, даже если объект потом удалят
             text("target_name", max_length=300),
             {"name": "data", "type": "json", "maxSize": 200000},
+            # Своё фото участника; при принятии заявки переносится в объект
+            {"name": "photo_file", "type": "file", "maxSelect": 1, "maxSize": 8 * 1024 * 1024,
+             "mimeTypes": ["image/jpeg", "image/png", "image/webp"], "thumbs": ["600x0"]},
             text("comment", max_length=2000),
             select("status", ["pending", "approved", "rejected"], required=True),
             text("admin_comment", max_length=2000),
