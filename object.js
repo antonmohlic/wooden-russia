@@ -96,8 +96,8 @@ function render(obj, objects) {
         ${obj.description ? `<p class="description">${escapeHtml(obj.description)}</p>` : ""}
         <div class="card-links">
           <a href="${mapUrl(obj)}">Показать на большой карте</a>
-          ${obj.wiki ? `<a href="${escapeHtml(obj.wiki)}" target="_blank" rel="noopener">Статья в Википедии</a>` : ""}
-          ${obj.website ? `<a href="${escapeHtml(obj.website)}" target="_blank" rel="noopener">Официальный сайт</a>` : ""}
+          ${safeUrl(obj.wiki) ? `<a href="${escapeHtml(safeUrl(obj.wiki))}" target="_blank" rel="noopener">Статья в Википедии</a>` : ""}
+          ${safeUrl(obj.website) ? `<a href="${escapeHtml(safeUrl(obj.website))}" target="_blank" rel="noopener">Официальный сайт</a>` : ""}
           <a href="propose.html?edit=${encodeURIComponent(obj.id)}" id="suggest-edit" hidden>✎ Предложить правку</a>
         </div>
       </div>

@@ -21,6 +21,7 @@ const LOG_ACTIONS = {
   approve: "принято",
   reject: "отклонено",
   delete_object: "удалён объект",
+  edit_object: "изменён объект",
 };
 
 let currentTab = "stats";

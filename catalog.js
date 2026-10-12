@@ -25,7 +25,7 @@ function cardHtml(obj) {
         <div class="card-links">
           <a href="${objectUrl(obj)}">Подробнее</a>
           <a href="${mapUrl(obj)}">На карте</a>
-          ${obj.wiki ? `<a href="${escapeHtml(obj.wiki)}" target="_blank" rel="noopener">Википедия</a>` : ""}
+          ${safeUrl(obj.wiki) ? `<a href="${escapeHtml(safeUrl(obj.wiki))}" target="_blank" rel="noopener">Википедия</a>` : ""}
         </div>
       </div>
     </article>`;

@@ -61,7 +61,7 @@ function popupHtml(obj, museum) {
       ${obj.visit_why ? `<p class="popup-why is-clamped">${escapeHtml(obj.visit_why)}</p><button class="link-button" type="button" data-more hidden>ещё…</button>` : ""}
       <div class="popup-links">
         <a href="${objectUrl(obj)}">Подробнее →</a>
-        ${obj.wiki ? `<a href="${escapeHtml(obj.wiki)}" target="_blank" rel="noopener">Википедия</a>` : ""}
+        ${safeUrl(obj.wiki) ? `<a href="${escapeHtml(safeUrl(obj.wiki))}" target="_blank" rel="noopener">Википедия</a>` : ""}
       </div>
     </div>`;
 }

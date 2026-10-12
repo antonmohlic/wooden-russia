@@ -222,4 +222,34 @@ function reviewTarget(app, record) {
   return `${kinds[record.getString("kind")] || "заявка"}: ${data.name || record.getString("target_name") || record.getString("target")}`;
 }
 
-module.exports = { stats, listUsers, setRole, setBanned, log, reviewTarget };
+// Что изменилось в объекте: «поле: было → стало» по каждому полю. Прежние значения нужны, чтобы откатить порчу.
+function objectChanges(record) {
+  const skip = ["updated", "created", "status_changed_at"];
+  const original = record.original();
+  const short = (value) => {
+    const text = String(value ?? "").replace(/\s+/g, " ").trim();
+    return text.length > 150 ? text.slice(0, 149) + "…" : text || "—";
+  };
+  const changes = [];
+  const fields = record.collection().fields;
+  for (let i = 0; i < fields.length; i++) {
+    const name = fields[i].getName();
+    if (skip.includes(name)) continue;
+    const before = original.getString(name);
+    const after = record.getString(name);
+    if (before !== after) changes.push(`${name}: ${short(before)} → ${short(after)}`);
+  }
+  return changes.join("; ");
+}
+
+// Поля заявки, которые станут ссылками на сайте: только http(s)
+function checkSubmissionUrls(data) {
+  for (const key of ["wiki", "website", "photo", "photo_source"]) {
+    const value = data && data[key];
+    if (value && !/^https?:\/\/\S+$/i.test(String(value).trim())) {
+      throw new BadRequestError(`Поле «${key}»: нужна ссылка, начинающаяся с http:// или https://.`);
+    }
+  }
+}
+
+module.exports = { stats, listUsers, setRole, setBanned, log, reviewTarget, objectChanges, checkSubmissionUrls };

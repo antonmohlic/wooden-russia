@@ -24,6 +24,12 @@ const NAV_ITEMS = [
 // ---------- Вспомогательные функции ----------
 
 // Защита от случайных HTML-символов в данных
+// Внешняя ссылка из данных: только http(s), иначе пусто. Защита от «ссылок» вида javascript:…
+function safeUrl(url) {
+  const text = String(url ?? "").trim();
+  return /^https?:\/\//i.test(text) ? text : "";
+}
+
 function escapeHtml(text) {
   const div = document.createElement("div");
   div.textContent = text ?? "";
@@ -109,8 +115,8 @@ function photoSrc(obj, width) {
 function photoCredit(obj) {
   if (!obj.photo_author) return "";
   const text = `Фото: ${obj.photo_author}, ${obj.photo_license || "лицензия не указана"}`;
-  return obj.photo_source
-    ? `<a class="credit" href="${escapeHtml(obj.photo_source)}" target="_blank" rel="noopener">${escapeHtml(text)}</a>`
+  return safeUrl(obj.photo_source)
+    ? `<a class="credit" href="${escapeHtml(safeUrl(obj.photo_source))}" target="_blank" rel="noopener">${escapeHtml(text)}</a>`
     : `<span class="credit">${escapeHtml(text)}</span>`;
 }
 

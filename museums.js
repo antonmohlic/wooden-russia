@@ -23,7 +23,7 @@ function museumCardHtml(museum, items) {
         <div class="card-links">
           <a href="${objectUrl(museum)}">Подробнее о музее</a>
           <a href="${mapUrl(museum)}">На карте</a>
-          ${museum.website ? `<a href="${escapeHtml(museum.website)}" target="_blank" rel="noopener">Официальный сайт</a>` : ""}
+          ${safeUrl(museum.website) ? `<a href="${escapeHtml(safeUrl(museum.website))}" target="_blank" rel="noopener">Официальный сайт</a>` : ""}
         </div>
         ${photoCredit(museum)}
       </div>

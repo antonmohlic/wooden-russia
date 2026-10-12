@@ -48,6 +48,10 @@ STATUSES = ["сохранился", "аварийный", "утрачен"]
 OBSERVATION_CONDITIONS = ["хорошее", "удовлетворительное", "плохое", "аварийное", "руины"]
 
 
+# Поля-ссылки: только http(s), чтобы на сайт не попала «ссылка» вида javascript:…
+URL_PATTERN = r"^(?i)https?://\S+$"
+
+
 def text(name, required=False, max_length=0, pattern=""):
     return {"name": name, "type": "text", "required": required, "max": max_length, "pattern": pattern}
 
@@ -142,12 +146,12 @@ def main():
             text("museum", max_length=100),
             text("origin", max_length=300),
             text("description", max_length=5000),
-            text("wiki", max_length=500),
-            text("website", max_length=500),
-            text("photo", max_length=1000),
+            text("wiki", max_length=500, pattern=URL_PATTERN),
+            text("website", max_length=500, pattern=URL_PATTERN),
+            text("photo", max_length=1000, pattern=URL_PATTERN),
             text("photo_author", max_length=300),
             text("photo_license", max_length=100),
-            text("photo_source", max_length=1000),
+            text("photo_source", max_length=1000, pattern=URL_PATTERN),
             # Своё фото, загруженное в модерации; если есть — показывается вместо ссылки photo
             {"name": "photo_file", "type": "file", "maxSelect": 1, "maxSize": 8 * 1024 * 1024,
              "mimeTypes": ["image/jpeg", "image/png", "image/webp"], "thumbs": ["400x0", "600x0", "1200x0"]},
@@ -262,10 +266,10 @@ def main():
             # Фото: своё (загрузка) или с Wikimedia Commons (ссылка + автор и лицензия)
             {"name": "photo_file", "type": "file", "maxSelect": 1, "maxSize": 8 * 1024 * 1024,
              "mimeTypes": ["image/jpeg", "image/png", "image/webp"], "thumbs": ["1200x0"]},
-            text("photo", max_length=1000),
+            text("photo", max_length=1000, pattern=URL_PATTERN),
             text("photo_author", max_length=300),
             text("photo_license", max_length=100),
-            text("photo_source", max_length=1000),
+            text("photo_source", max_length=1000, pattern=URL_PATTERN),
             # Черновик видит только админ; так приходит, например, ежемесячная подборка «Под угрозой»
             {"name": "draft", "type": "bool"},
             *autodates(),
@@ -308,7 +312,7 @@ def main():
             {"name": "actor", "type": "relation", "collectionId": users["id"], "maxSelect": 1},
             # Имя на момент действия: запись остаётся понятной, даже если аккаунт потом удалят
             text("actor_name", max_length=255),
-            select("action", ["role", "ban", "unban", "approve", "reject", "delete_object"], required=True),
+            select("action", ["role", "ban", "unban", "approve", "reject", "delete_object", "edit_object"], required=True),
             # Над чем действие: пользователь, заявка или объект
             text("target", max_length=300),
             text("details", max_length=2000),

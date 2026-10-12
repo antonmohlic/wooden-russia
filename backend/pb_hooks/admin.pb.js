@@ -45,6 +45,24 @@ onRecordUpdateRequest((e) => {
   admin.log($app, e.auth, after === "approved" ? "approve" : "reject", admin.reviewTarget($app, e.record), e.record.getString("admin_comment"));
 }, "submissions", "observations");
 
+// Журнал: любая правка объекта — из модерации, напрямую через API или из панели базы — с прежними значениями
+onRecordUpdateRequest((e) => {
+  const admin = require(`${__hooks}/admin.js`);
+  const details = admin.objectChanges(e.record);
+  e.next();
+  if (details) admin.log($app, e.auth, "edit_object", `${e.record.getString("name")} (${e.record.getString("slug")})`, details);
+}, "objects");
+
+// В заявках ссылки лежат внутри поля data — проверяем их сами (схема туда не дотягивается)
+onRecordCreateRequest((e) => {
+  let data = {};
+  try {
+    data = JSON.parse(e.record.getString("data") || "{}");
+  } catch (err) {}
+  require(`${__hooks}/admin.js`).checkSubmissionUrls(data);
+  return e.next();
+}, "submissions");
+
 // Журнал: удаление объекта с сайта
 onRecordDeleteRequest((e) => {
   const name = e.record.getString("name");
