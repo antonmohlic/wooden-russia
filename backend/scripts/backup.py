@@ -53,6 +53,9 @@ def ssh(settings, command, out_path):
             [ssh_exe, "-i", key, "-o", f"UserKnownHostsFile={known_hosts}", "-o", "BatchMode=yes",
              "-o", "ConnectTimeout=30", settings["SSH"], command],
             stdout=out, stderr=subprocess.PIPE, timeout=600,
+            # Без окна консоли: из Планировщика (pythonw) ssh.exe иначе открывает своё окно,
+            # и если его закрыть, копия обрывается (код 0xC000013A).
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
     if result.returncode != 0:
         raise RuntimeError(result.stderr.decode("utf-8", "replace").strip() or f"ssh завершился с кодом {result.returncode}")
