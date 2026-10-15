@@ -177,7 +177,7 @@ h1, h2, h3 { line-height: 1.25; }
 }
 
 /* Меню прячется под кнопку ☰, когда пункты не помещаются в строку с названием */
-@media (max-width: 1040px) {
+@media (max-width: 1140px) {
   .menu-toggle { display: block; }
 
   .site-nav {
@@ -1032,6 +1032,70 @@ a.tab { text-align: center; text-decoration: none; }
 @media (max-width: 760px) {
   .object-layout { grid-template-columns: 1fr; }
   .page h1 { font-size: 24px; }
+}
+
+/* ---------- Страница «Поездки» ---------- */
+
+.trip-section { margin-top: 32px; }
+.trip-section h2 { margin: 0 0 4px; font-size: 23px; }
+.trip-section-intro { margin: 0 0 14px; color: var(--muted); }
+
+/* До пяти карточек в ряд, дальше — новые ряды */
+.trip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.trip-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  text-decoration: none;
+}
+
+a.trip-card:hover .trip-title { color: var(--wood); }
+
+/* Без фото — тёмное дерево */
+.trip-photo {
+  position: relative;
+  height: 130px;
+  background: linear-gradient(135deg, var(--wood), var(--wood-dark));
+}
+
+.trip-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trip-status {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--wood-dark);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.trip-title { padding: 10px 12px 0; font-weight: 600; }
+.trip-meta { padding: 0 12px 12px; color: var(--muted); font-size: 13px; }
+.trip-text { margin: -6px 0 0; padding: 0 12px 12px; font-size: 14px; }
+
+.trip-empty {
+  margin: 0;
+  padding: 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
 }
 
 /* ---------- Страница карты ---------- */

@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { href: "index.html", label: "Карта" },
   { href: "catalog.html", label: "Каталог" },
   { href: "museums.html", label: "Музеи" },
+  { href: "trips.html", label: "Поездки" },
   { href: "glossary.html", label: "Справочник" },
   { href: "about.html", label: "О сервисе" },
 ];

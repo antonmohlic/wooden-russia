@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Поездки — Лемех</title>
+  <meta name="description" content="Маршруты по деревянному зодчеству России, волонтёрские экспедиции и экскурсии">
+  <!-- Превью ссылки в Telegram, ВКонтакте и других соцсетях -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Лемех">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:title" content="Поездки — Лемех">
+  <meta property="og:description" content="Маршруты по деревянному зодчеству России, волонтёрские экспедиции и экскурсии">
+  <meta property="og:url" content="https://lemekh.ru/trips.html">
+  <meta property="og:image" content="https://commons.wikimedia.org/wiki/Special:FilePath/Kishi_church_2.jpg?width=1200">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <h1>Поездки</h1>
+    <p>
+      Как увидеть деревянные храмы, часовни и избы своими глазами: готовые маршруты,
+      волонтёрские экспедиции и экскурсии с местными гидами.
+    </p>
+
+    <section class="trip-section">
+      <h2>Маршруты</h2>
+      <p class="trip-section-intro">Поездки на 1–3 дня: точки на карте, дорога, ночлег, когда ехать.</p>
+      <div class="trip-grid" id="routes"></div>
+    </section>
+
+    <section class="trip-section">
+      <h2>Волонтёрские экспедиции</h2>
+      <p class="trip-section-intro">Поездки к памятникам, о которых мало известно: фотографируем, описываем состояние, пополняем каталог.</p>
+      <div class="trip-grid" id="expeditions"></div>
+    </section>
+
+    <section class="trip-section">
+      <h2>Организованные экскурсии</h2>
+      <p class="trip-section-intro">Экскурсии наших партнёров — музеев, нацпарков и гидов.</p>
+      <div class="trip-grid" id="tours"></div>
+    </section>
+  </main>
+
+  <script src="api.js"></script>
+  <script src="common.js"></script>
+  <script src="trips.js"></script>
+</body>
+</html>
