@@ -128,7 +128,7 @@ document.addEventListener("keydown", (event) => {
 
 // Сколько фильтров включено — показываем на закрытой кнопке
 function updateFilterBadge(state) {
-  const active = Object.values(state).filter(Boolean).length;
+  const active = Object.values(state).filter(isFilterActive).length;
   const badge = document.getElementById("filters-badge");
   badge.textContent = active;
   badge.hidden = active === 0;

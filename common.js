@@ -310,8 +310,38 @@ function selectHtml(name, placeholder, options) {
   return `<select name="${name}"><option value="">${placeholder}</option>${items.join("")}</select>`;
 }
 
+// Фильтры, в которых можно отметить несколько значений сразу (регионы, типы, века, статусы)
+const MULTI_KEYS = ["region", "type", "century", "status"];
+
+// Выпадающий список с галочками. title — как подписать выбор нескольких значений («Регионы: 3»)
+function multiHtml(name, placeholder, title, options) {
+  const items = options.map(([value, label]) =>
+    `<label class="multi-option"><input type="checkbox" name="${name}" value="${escapeHtml(value)}"><span>${escapeHtml(label)}</span></label>`);
+  return `
+    <details class="multi" data-placeholder="${escapeHtml(placeholder)}" data-title="${escapeHtml(title)}">
+      <summary>${escapeHtml(placeholder)}</summary>
+      <div class="multi-options">${items.join("")}</div>
+    </details>`;
+}
+
+// Надпись на закрытом списке: «Все регионы», название одного выбранного или «Регионы: 3»
+function updateMultiSummary(details) {
+  const checked = [...details.querySelectorAll("input:checked")];
+  const summary = details.querySelector("summary");
+  summary.textContent = checked.length === 0 ? details.dataset.placeholder
+    : checked.length === 1 ? checked[0].nextElementSibling.textContent
+    : `${details.dataset.title}: ${checked.length}`;
+  details.classList.toggle("is-active", checked.length > 0);
+}
+
+// Включён ли фильтр: для списков с галочками — отмечено ли хоть что-то
+function isFilterActive(value) {
+  return Array.isArray(value) ? value.length > 0 : Boolean(value);
+}
+
 // Рисует поиск и фильтры в container. При каждом изменении вызывает onChange(состояние).
 // Состояние хранится в адресе страницы, поэтому ссылкой с фильтрами можно поделиться.
+// Несколько значений одного фильтра пишутся в адрес повтором: ?region=A&region=B
 function createFilters(container, objects, onChange) {
   const toOptions = (values) => values.map((v) => [v, v]);
   const centuries = [...new Set(objects.map(centuryOf).filter(Boolean))].sort((a, b) => a - b);
@@ -320,10 +350,10 @@ function createFilters(container, objects, onChange) {
   container.innerHTML = `
     <input type="search" name="q" placeholder="Поиск: название, село, район…" autocomplete="off">
     ${selectHtml("worth", "Все объекты", [["1", "★ Только «Стоит посетить»"]])}
-    ${selectHtml("region", "Все регионы", toOptions(uniqueSorted(objects.map((o) => o.region))))}
-    ${selectHtml("type", "Все типы", toOptions(uniqueSorted(objects.map((o) => o.type))))}
-    ${selectHtml("century", "Любой век", centuries.map((c) => [c, centuryLabel(c)]))}
-    ${selectHtml("status", "Любой статус", toOptions(Object.keys(STATUS_COLORS)))}
+    ${multiHtml("region", "Все регионы", "Регионы", toOptions(uniqueSorted(objects.map((o) => o.region))))}
+    ${multiHtml("type", "Все типы", "Типы", toOptions(uniqueSorted(objects.map((o) => o.type))))}
+    ${multiHtml("century", "Любой век", "Века", centuries.map((c) => [String(c), centuryLabel(c)]))}
+    ${multiHtml("status", "Любой статус", "Статусы", toOptions(Object.keys(STATUS_COLORS)))}
     ${selectHtml("museum", "Музеи и вне музеев", [
       ["none", "Только вне музеев"],
       ["any", "Только в музеях"],
@@ -331,20 +361,35 @@ function createFilters(container, objects, onChange) {
     ])}
     <button type="button" class="filters-reset">Сбросить</button>`;
 
-  const fields = Object.fromEntries(FILTER_KEYS.map((key) => [key, container.querySelector(`[name="${key}"]`)]));
+  const isMulti = (key) => MULTI_KEYS.includes(key);
+  const boxes = (key) => [...container.querySelectorAll(`input[type="checkbox"][name="${key}"]`)];
+  const field = (key) => container.querySelector(`[name="${key}"]`);
+  const allDetails = [...container.querySelectorAll(".multi")];
 
   // Начальные значения берём из адреса страницы
   const params = new URLSearchParams(location.search);
   FILTER_KEYS.forEach((key) => {
-    if (params.has(key)) fields[key].value = params.get(key);
+    if (isMulti(key)) {
+      const wanted = params.getAll(key);
+      boxes(key).forEach((box) => (box.checked = wanted.includes(box.value)));
+    } else if (params.has(key)) {
+      field(key).value = params.get(key);
+    }
   });
+  allDetails.forEach(updateMultiSummary);
 
-  const getState = () => Object.fromEntries(FILTER_KEYS.map((key) => [key, fields[key].value.trim()]));
+  const getState = () => Object.fromEntries(FILTER_KEYS.map((key) => [key,
+    isMulti(key) ? boxes(key).filter((box) => box.checked).map((box) => box.value) : field(key).value.trim()]));
 
   const update = () => {
+    allDetails.forEach(updateMultiSummary);
     const state = getState();
     const url = new URLSearchParams(location.search);
-    FILTER_KEYS.forEach((key) => (state[key] ? url.set(key, state[key]) : url.delete(key)));
+    FILTER_KEYS.forEach((key) => {
+      url.delete(key);
+      if (isMulti(key)) state[key].forEach((value) => url.append(key, value));
+      else if (state[key]) url.set(key, state[key]);
+    });
     const query = url.toString();
     history.replaceState(null, "", query ? `?${query}` : location.pathname);
     onChange(state);
@@ -352,8 +397,28 @@ function createFilters(container, objects, onChange) {
 
   container.addEventListener("input", update);
   container.querySelector(".filters-reset").addEventListener("click", () => {
-    FILTER_KEYS.forEach((key) => (fields[key].value = ""));
+    FILTER_KEYS.forEach((key) => {
+      if (isMulti(key)) boxes(key).forEach((box) => (box.checked = false));
+      else field(key).value = "";
+    });
+    allDetails.forEach((details) => (details.open = false));
     update();
+  });
+
+  // Открыт только один список; щелчок мимо или Esc закрывает его
+  allDetails.forEach((details) => details.addEventListener("toggle", () => {
+    if (details.open) allDetails.forEach((other) => other !== details && (other.open = false));
+  }));
+  document.addEventListener("click", (event) => {
+    allDetails.forEach((details) => !details.contains(event.target) && (details.open = false));
+  });
+  container.addEventListener("keydown", (event) => {
+    const open = allDetails.find((details) => details.open);
+    if (event.key === "Escape" && open) {
+      event.stopPropagation();
+      open.open = false;
+      open.querySelector("summary").focus();
+    }
   });
 
   onChange(getState());
@@ -373,10 +438,11 @@ function filterObjects(objects, state) {
   return objects.filter((obj) => {
     if (query && !normalize(`${obj.name} ${obj.address} ${obj.region} ${obj.origin || ""}`).includes(query)) return false;
     if (state.worth && !obj.worth_visit) return false;
-    if (state.region && obj.region !== state.region) return false;
-    if (state.type && obj.type !== state.type) return false;
-    if (state.century && String(centuryOf(obj)) !== state.century) return false;
-    if (state.status && obj.status !== state.status) return false;
+    // В списках с галочками объект подходит, если совпадает с любым из отмеченных значений
+    if (state.region.length && !state.region.includes(obj.region)) return false;
+    if (state.type.length && !state.type.includes(obj.type)) return false;
+    if (state.century.length && !state.century.includes(String(centuryOf(obj)))) return false;
+    if (state.status.length && !state.status.includes(obj.status)) return false;
     if (!matchesMuseum(obj, state.museum)) return false;
     return true;
   });

@@ -699,6 +699,75 @@ a.button {
 .filters--column { flex-direction: column; }
 .filters--column input[type="search"] { flex: none; }
 
+/* Список с галочками (регионы, типы, века, статусы): закрытый выглядит как обычный выпадающий список */
+.multi {
+  position: relative;
+  min-width: 0;
+  font-size: 14px;
+}
+
+.multi summary {
+  padding: 8px 28px 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  list-style: none;
+  position: relative;
+}
+
+.multi summary::-webkit-details-marker { display: none; }
+
+.multi summary::after {
+  content: "▾";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+}
+
+.multi[open] summary::after { content: "▴"; }
+.multi summary:hover { border-color: var(--wood); }
+.multi.is-active summary { border-color: var(--wood); font-weight: 600; }
+
+.multi-options {
+  display: flex;
+  flex-direction: column;
+  max-height: 260px;
+  margin-top: 4px;
+  padding: 4px 0;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+/* В каталоге фильтры стоят в строку — список раскрывается поверх карточек */
+.filters:not(.filters--column) .multi-options {
+  position: absolute;
+  z-index: 50;
+  left: 0;
+  min-width: 260px;
+  box-shadow: var(--shadow);
+}
+
+.multi-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  line-height: 1.3;
+}
+
+.multi-option:hover { background: var(--bg); }
+.filters .multi-option input { flex: none; margin: 2px 0 0; padding: 0; }
+
 .results-count {
   margin: 12px 0;
   color: var(--muted);
