@@ -125,8 +125,9 @@ function objectUrl(obj) {
   return `object.html?id=${encodeURIComponent(obj.id)}`;
 }
 
+// Не index.html?id=…: сервер переадресует index.html на «/» и теряет параметры
 function mapUrl(obj) {
-  return `index.html?id=${encodeURIComponent(obj.id)}`;
+  return `./?id=${encodeURIComponent(obj.id)}`;
 }
 
 // Маленькая карточка объекта: памятники музея, «Что рядом», личные списки.

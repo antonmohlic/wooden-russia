@@ -193,7 +193,7 @@ loadObjects()
 
     map.on("zoomend", drawMarkers);
 
-    // Ссылка вида index.html?id=… открывает конкретный объект
+    // Ссылка вида /?id=… открывает конкретный объект
     const focusId = new URLSearchParams(location.search).get("id");
     const focusObj = byId.get(focusId);
     let firstRender = true;
